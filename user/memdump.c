@@ -60,6 +60,57 @@ main(int argc, char *argv[])
 void
 memdump(char *fmt, char *data, int len)
 {
-  // Your code here.  `data` holds `len` valid bytes.
+  for (; *fmt; fmt++) {
+    int size;
+    switch (*fmt) {
+    case 'i': size = 4; break;
+    case 'p': case 's': size = 8; break;
+    case 'h': size = 2; break;
+    case 'c': size = 1; break;
+    case 'S': size = 0; break;
+    default:
+      fprintf(2, "memdump: unknown format '%c'\n", *fmt);
+      return;
+    }
+    if (len < size) {
+      fprintf(2, "memdump: not enough data for '%c'\n", *fmt);
+      return;
+    }
 
+    // Copies allow packed/unaligned fields without unsafe pointer casts.
+    int integer;
+    short half;
+    uint64 wide;
+    char *string;
+    switch (*fmt) {
+    case 'i':
+      memmove(&integer, data, size);
+      printf("%d\n", integer);
+      break;
+    case 'p':
+      memmove(&wide, data, size);
+      printf("%lx\n", wide);
+      break;
+    case 'h':
+      memmove(&half, data, size);
+      printf("%d\n", (int)half);
+      break;
+    case 'c':
+      printf("%c\n", (uchar)*data);
+      break;
+    case 's':
+      // The pointed-to C string must be valid in this process.
+      memmove(&string, data, size);
+      printf("%s\n", string);
+      break;
+    case 'S':
+      // Stdin need not include a NUL: never scan beyond the valid bytes.
+      for (int i = 0; i < len && data[i] != '\0'; i++)
+        printf("%c", (uchar)data[i]);
+      printf("\n");
+      return; // S consumes the rest of the data.
+    }
+    data += size;
+    len -= size;
+  }
 }
