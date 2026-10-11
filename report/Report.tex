@@ -131,7 +131,7 @@
 1 & 24120166 & Võ Nhất Bảo & Thiết lập môi trường phát triển trên NixOS (toolchain RISC-V, QEMU, GDB); phân tích, cài đặt và kiểm thử \cc{sleep}, \cc{sixfive}. & 50\% \\
 \rowcolor{rowalt}
 2 & 24120182 & Phạm Lê Huy Hoàng & Phân tích, cài đặt và kiểm thử \cc{memdump}, \cc{find} và \cc{find -exec}. & 50\% \\
-\multicolumn{3}{@{}l}{\textbf{Công việc chung}} & Chạy autograder và kiểm thử bổ sung, rà soát chéo mã nguồn, viết báo cáo, đóng gói bài nộp. & 100\% \\
+\multicolumn{3}{@{}l}{\textbf{Công việc chung}} & Chạy autograder và kiểm thử bổ sung, rà soát chéo mã nguồn, viết báo cáo, đóng gói bài nộp. & Cả hai \\
 \bottomrule
 \end{tabularx}
 \caption{Phân công công việc và tỷ lệ đóng góp của các thành viên.}
@@ -696,7 +696,7 @@ time (\cc{time.txt} tồn tại) & 1/1 \\
 \captionof{table}{Các test của autograder theo bài.}
 \vspace{6pt}
 
-Kết quả \cc{make grade} cho toàn bộ lab: 19/19 test đạt, tổng \textbf{156/156} điểm, mã thoát 0 (Hình~\ref{fig:grade}). Hai tệp \cc{grade-lab-util} và \cc{gradelib.py} được giữ nguyên: \cc{git diff origin/util} chỉ gồm \cc{Makefile}, \cc{time.txt} và bốn tệp trong \cc{user/}. Mã của nhóm biên dịch với \cc{-Wall -Werror} không có cảnh báo; cảnh báo \cc{RWX} của linker trong ảnh thuộc về kernel gốc.
+Kết quả \cc{make grade} cho toàn bộ lab: 19/19 test đạt, tổng \textbf{156/156} điểm, mã thoát 0 (Hình~\ref{fig:grade}). Hai tệp \cc{grade-lab-util} và \cc{gradelib.py} được giữ nguyên: mã nguồn trong \cc{lab.zip} chỉ khác bản gốc (\cc{origin/util}) ở \cc{Makefile}, \cc{time.txt} và bốn tệp trong \cc{user/}. Mã của nhóm biên dịch với \cc{-Wall -Werror} không có cảnh báo; cảnh báo \cc{RWX} của linker trong ảnh thuộc về kernel gốc.
 
 Test \emph{exec, multiple args} chạy \cc{grep hello ./findtest.sh}: \cc{grep} in 4 dòng chứa \cc{hello}, cộng thêm dòng lệnh vừa gõ được console hiển thị lại, nên có đúng 5 lần \cc{hello} như autograder đếm.
 \end{minipage}
