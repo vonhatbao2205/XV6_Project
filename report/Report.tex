@@ -1,0 +1,783 @@
+% Biên dịch: latexmk -xelatex Report.tex   (Overleaf: Compiler = XeLaTeX)
+% Ảnh chụp terminal nằm trong ../evidence/, logo trường nằm trong images/.
+\documentclass[10pt,a4paper]{article}
+\usepackage[left=2cm,right=1.8cm,top=2.1cm,bottom=1.9cm,headheight=14pt,headsep=12pt,footskip=22pt]{geometry}
+\usepackage{fontspec}
+\setmainfont{texgyretermes}[Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,
+  ItalicFont=*-italic,BoldItalicFont=*-bolditalic]
+\setmonofont{DejaVuSansMono}[Path=fonts/,Extension=.ttf,UprightFont=*,BoldFont=*-Bold,
+  ItalicFont=*-Oblique,BoldItalicFont=*-BoldOblique,Scale=0.86]
+\usepackage{polyglossia}
+\setdefaultlanguage{vietnamese}
+\usepackage[table]{xcolor}
+\usepackage{graphicx,booktabs,tabularx,array,multirow,etoolbox,enumitem,titlesec,
+  caption,float,fancyhdr,lastpage,listings,fancyvrb,tikz,multicol}
+\usepackage[most]{tcolorbox}
+\usetikzlibrary{arrows.meta,calc,positioning,patterns}
+\usepackage{hyperref}
+
+% ------------------------------------------------------------------ Thông tin bìa
+% Điền tên giảng viên / lớp nếu cần; để trống thì dòng tương ứng không hiển thị.
+\newcommand{\GVHD}{}
+\newcommand{\LOP}{}
+
+% ------------------------------------------------------------------ Màu và kiểu chung
+\definecolor{hcmus}{HTML}{283F78}
+\definecolor{boxbg}{HTML}{EDF1F8}
+\definecolor{codebg}{HTML}{F6F8FB}
+\definecolor{rowalt}{HTML}{F4F6FA}
+\definecolor{cmt}{HTML}{3B7A57}
+\definecolor{str}{HTML}{9A3B26}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=hcmus,
+  pdftitle={Báo cáo Lab 1 – Xv6 and Unix Utilities},
+  pdfauthor={Võ Nhất Bảo, Phạm Lê Huy Hoàng}}
+\graphicspath{{../evidence/}{images/}}
+
+\linespread{1.0}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\tolerance=2000
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\emergencystretch=3em
+\setlist{nosep,leftmargin=*,itemsep=1pt,topsep=1pt}
+\captionsetup{font=small,labelfont={bf,color=hcmus},labelsep=period,skip=3pt}
+\renewcommand{\arraystretch}{1.12}
+
+\titleformat{\section}{\large\bfseries\color{hcmus}}{\thesection.}{0.5em}{}[{\color{hcmus}\titlerule[0.6pt]}]
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titleformat{\subsection}{\normalsize\bfseries\color{hcmus}}{\thesubsection.}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{hcmus}Trường ĐH Khoa học Tự nhiên – ĐHQG-HCM}
+\fancyhead[R]{\small\color{hcmus}CS333 – Hệ điều hành}
+\fancyfoot[L]{\small Lab 1: Xv6 and Unix Utilities}
+\fancyfoot[R]{\small Trang \thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\lstset{language=C,basicstyle=\ttfamily\footnotesize,columns=fullflexible,keepspaces=true,
+  numbers=left,numberstyle=\tiny\color{gray},numbersep=9pt,xleftmargin=24pt,
+  frame=l,framerule=1.6pt,rulecolor=\color{hcmus},backgroundcolor=\color{codebg},
+  framexleftmargin=2pt,aboveskip=3pt,belowskip=3pt,breaklines=true,upquote=true,
+  keywordstyle=\color{hcmus}\bfseries,commentstyle=\color{cmt}\itshape,
+  stringstyle=\color{str},showstringspaces=false,
+  morekeywords={uint,uint64,uchar,ushort}}
+\newcommand{\srcname}[1]{{\small\bfseries\color{hcmus}#1}\par\vspace{-2pt}}
+\newcommand{\cc}[1]{\texttt{#1}}
+\newcommand{\thd}[1]{\textcolor{white}{\textbf{#1}}}
+\newcommand{\headrow}{\rowcolor{hcmus}}
+\newtcolorbox{pseudobox}{colback=codebg,colframe=hcmus,boxrule=0pt,leftrule=1.6pt,
+  arc=0pt,outer arc=0pt,left=6pt,right=4pt,top=2pt,bottom=2pt}
+\fvset{fontsize=\small}
+
+\begin{document}
+
+% =================================================================== TRANG BÌA
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay]
+  \draw[hcmus,line width=2.6pt]
+    ($(current page.north west)+(1.25cm,-1.25cm)$) rectangle ($(current page.south east)+(-1.25cm,1.25cm)$);
+  \draw[hcmus,line width=0.7pt]
+    ($(current page.north west)+(1.45cm,-1.45cm)$) rectangle ($(current page.south east)+(-1.45cm,1.45cm)$);
+\end{tikzpicture}
+\begin{center}
+\vspace*{-0.4cm}
+{\fontsize{13.5}{18}\selectfont ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH\par}
+{\fontsize{13.5}{18}\selectfont\bfseries TRƯỜNG ĐẠI HỌC KHOA HỌC TỰ NHIÊN\par}
+{\fontsize{13.5}{18}\selectfont\bfseries KHOA CÔNG NGHỆ THÔNG TIN\par}
+\vspace{6pt}
+{\color{hcmus}\rule[0.6ex]{3.4cm}{0.8pt}\hspace{0.4em}\raisebox{0.15ex}{\tikz\fill[hcmus,rotate=45] (0,0) rectangle (0.13,0.13);}\hspace{0.4em}\rule[0.6ex]{3.4cm}{0.8pt}}\par
+\vspace{1.5cm}
+\includegraphics[width=4.9cm]{logo-hcmus.png}\par
+\vspace{1.5cm}
+{\fontsize{17}{22}\selectfont\bfseries BÁO CÁO THỰC HÀNH\par}
+\vspace{6pt}
+{\fontsize{14}{18}\selectfont MÔN HỌC: HỆ ĐIỀU HÀNH (CS333)\par}
+\vspace{1.1cm}
+{\fontsize{27}{33}\selectfont\bfseries\color{hcmus} LAB 1\par}
+\vspace{6pt}
+{\fontsize{25}{31}\selectfont\bfseries\color{hcmus} XV6 AND UNIX UTILITIES\par}
+\vspace{1.7cm}
+\ifdefempty{\GVHD}{\def\gvhdrow{}}{\def\gvhdrow{\textbf{Giảng viên hướng dẫn:} & \multicolumn{2}{@{}l}{\GVHD}\\}}
+\ifdefempty{\LOP}{\def\loprow{}}{\def\loprow{\textbf{Lớp:} & \multicolumn{2}{@{}l}{\LOP}\\}}
+{\fontsize{13}{19}\selectfont
+\begin{tabular}{@{}l@{\hspace{1.4em}}l@{\hspace{1.6em}}l@{}}
+\textbf{Sinh viên thực hiện:} & Võ Nhất Bảo & 24120166 \\
+ & Phạm Lê Huy Hoàng & 24120182 \\[4pt]
+\textbf{Mã nhóm:} & \multicolumn{2}{@{}l}{24120166\_24120182} \\
+\gvhdrow\loprow
+\end{tabular}\par}
+\vfill
+{\fontsize{13}{17}\selectfont\itshape Thành phố Hồ Chí Minh, tháng 10 năm 2026\par}
+\vspace*{0.3cm}
+\end{center}
+\newpage
+
+% =================================================================== MỤC LỤC
+\setcounter{tocdepth}{1}
+\section*{Mục lục}
+\begin{multicols}{2}\small\makeatletter\@starttoc{toc}\makeatother\end{multicols}
+\vspace{-4pt}
+
+% =================================================================== 1
+\section{Thông tin nhóm và phân công công việc}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}c c >{\raggedright\arraybackslash}p{3.3cm} X c@{}}
+\headrow \thd{STT} & \thd{MSSV} & \thd{Họ và tên} & \thd{Công việc đảm nhận} & \thd{Đóng góp} \\
+1 & 24120166 & Võ Nhất Bảo & Thiết lập môi trường phát triển trên NixOS (toolchain RISC-V, QEMU, GDB); phân tích, cài đặt và kiểm thử \cc{sleep}, \cc{sixfive}. & 50\% \\
+\rowcolor{rowalt}
+2 & 24120182 & Phạm Lê Huy Hoàng & Phân tích, cài đặt và kiểm thử \cc{memdump}, \cc{find} và \cc{find -exec}. & 50\% \\
+\multicolumn{3}{@{}l}{\textbf{Công việc chung}} & Chạy autograder và kiểm thử bổ sung, rà soát chéo mã nguồn, viết báo cáo, đóng gói bài nộp. & 100\% \\
+\bottomrule
+\end{tabularx}
+\caption{Phân công công việc và tỷ lệ đóng góp của các thành viên.}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}c l l X c c@{}}
+\headrow \thd{Bài} & \thd{Chương trình} & \thd{Tệp mã nguồn} & \thd{Nội dung chính} & \thd{Hoàn thành} & \thd{Autograder} \\
+1 & \cc{sleep} & \cc{user/sleep.c} & Dừng n tick bằng system call \cc{pause} & 100\% & 25/25 \\
+\rowcolor{rowalt}
+2 & \cc{sixfive} & \cc{user/sixfive.c} & Lọc số chia hết cho 5 hoặc 6 từ tệp/stdin & 100\% & 35/35 \\
+3 & \cc{memdump} & \cc{user/memdump.c} & Diễn giải vùng nhớ theo chuỗi định dạng & 100\% & 25/25 \\
+\rowcolor{rowalt}
+4 & \cc{find} & \cc{user/find.c} & Tìm tệp/thư mục theo tên, duyệt đệ quy & 100\% & 40/40 \\
+5 & \cc{find -exec} & \cc{user/find.c} & Chạy lệnh cho mỗi kết quả (fork/exec/wait) & 100\% & 30/30 \\
+\rowcolor{rowalt}
+-- & \cc{time.txt} & \cc{time.txt} & Số giờ thực hiện lab của nhóm & 100\% & 1/1 \\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Tổng kết quả \cc{make grade}}} & & \textbf{156/156} \\
+\bottomrule
+\end{tabularx}
+\caption{Mức độ hoàn thành các yêu cầu của Lab 1.}
+\end{table}
+
+% =================================================================== 2
+\section{Tổng quan và môi trường thực hiện}
+
+Lab 1 giúp làm quen với xv6 – hệ điều hành dạy học do MIT phát triển, mô phỏng Unix Version 6 và chạy trên RISC-V 64 bit thông qua QEMU. Nhóm cài đặt bốn chương trình user-space cho năm yêu cầu. Các chương trình chỉ dùng system call của xv6 (chủ yếu là \cc{pause}, \cc{open}, \cc{read}, \cc{close}, \cc{fstat}, \cc{fork}, \cc{exec}, \cc{wait}, \cc{exit}) và thư viện user đi kèm (\cc{ulib.c}, \cc{printf.c}, \cc{umalloc.c}); kernel và bộ chấm điểm được giữ nguyên.
+
+\subsection{Môi trường phát triển}
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\headrow \thd{Thành phần} & \thd{Phiên bản / ghi chú} \\
+Máy host & NixOS 26.05, x86-64 \\
+\rowcolor{rowalt}
+Trình biên dịch chéo & \cc{riscv64-none-elf-gcc} 15.2.0, GNU Binutils 2.46 \\
+Trình giả lập & QEMU 10.2.4 (\cc{qemu-system-riscv64}, 3 CPU) \\
+\rowcolor{rowalt}
+Gỡ lỗi và công cụ khác & GDB 17.2, GNU Make 4.4.1, Python 3.13 (chạy autograder), Git \\
+Mã nguồn & \cc{git://g.csail.mit.edu/xv6-labs-2026}, nhánh \cc{util}, commit gốc \cc{8138d07} \\
+\bottomrule
+\end{tabularx}
+\caption{Môi trường thực hiện.}
+\end{table}
+
+Hướng dẫn cài đặt của môn học dành cho Ubuntu/WSL (\cc{apt}) và macOS (Homebrew), không áp dụng trực tiếp cho NixOS. Vì vậy nhóm viết tệp \cc{shell.nix} khai báo bộ biên dịch chéo \cc{pkgsCross.riscv64-embedded}, QEMU, GDB, Make và Python. Tệp này đặt \cc{TOOLPREFIX=riscv64-none-elf-} để Makefile gọi đúng trình biên dịch. Nó cũng tắt các cờ hardening mà Nix tự thêm vào (\cc{hardeningDisable}), vì xv6 tự cung cấp runtime, linker script và các cờ biên dịch freestanding.
+
+\subsection{Quy trình thực hiện}
+\begin{enumerate}
+  \item \textbf{Lấy mã nguồn:} clone repo \cc{xv6-labs-2026}. Repo tự checkout nhánh \cc{util}; tệp \cc{conf/lab.mk} đặt \cc{LAB=util} để Makefile bật các chương trình và test của lab.
+  \item \textbf{Build và khởi động:} chạy \cc{nix-shell}, sau đó \cc{make qemu}. Makefile biên dịch kernel, \cc{mkfs} và các chương trình user, tạo ảnh đĩa \cc{fs.img}, rồi boot QEMU tới dấu nhắc của shell. Thoát QEMU bằng \cc{Ctrl-a x}.
+  \item \textbf{Với mỗi bài:} viết \cc{user/<tên>.c}, thêm \cc{\$U/\_<tên>} vào \cc{UPROGS}, chạy thử bằng \cc{make qemu}, chấm bằng \cc{make GRADEFLAGS=<tên> grade}, rồi commit. Mỗi chương trình được commit riêng trên nhánh \cc{util}.
+  \item \textbf{Hoàn tất:} tạo \cc{time.txt}, chạy \cc{make grade}, kiểm tra \cc{git status} sạch, chạy \cc{make zipball} để tạo \cc{lab.zip}, rồi đóng gói cùng báo cáo.
+\end{enumerate}
+
+Ngoài thư mục \cc{user/}, thay đổi duy nhất là một dòng trong khối \cc{ifeq (\$(LAB),util)} của \cc{Makefile}:
+\begin{lstlisting}[language=make,firstnumber=279,tabsize=4,morekeywords={ifeq,endif}]
+ifeq ($(LAB),util)
+	UEXTRA += user/findtest.sh
+	UEXTRA += user/sixfive.txt
+	UPROGS += $U/_sleep $U/_sixfive $U/_memdump $U/_find
+endif
+\end{lstlisting}
+\cc{mkfs} chỉ đưa vào \cc{fs.img} các tệp có trong \cc{UPROGS} và \cc{UEXTRA}; thiếu tệp nào thì shell báo \cc{exec <tên> failed}. Ở bản 2026, target \cc{qemu} phụ thuộc \cc{newfs.img}, nên mỗi lần \cc{make qemu} ảnh đĩa được tạo lại từ đầu. Muốn giữ các tệp đã tạo ở lần chạy trước thì dùng \cc{make qemu-fs}.
+
+% =================================================================== 3
+\section{Bài 1 – sleep}
+
+\textbf{Yêu cầu.} \cc{sleep <n>} dừng trong \cc{n} tick bằng system call \cc{pause}. Thiếu đối số thì in thông báo lỗi. Chương trình kết thúc bằng \cc{exit(0)}.
+
+\subsection{Tick và đường đi của system call \cc{pause}}
+Tick là đơn vị thời gian của kernel xv6, tương ứng một lần ngắt timer. \cc{kernel/start.c} và \cc{clockintr()} (\cc{kernel/trap.c}) hẹn ngắt kế tiếp sau $10^6$ chu kỳ của bộ đếm \cc{time}, khoảng 0,1 giây trên QEMU. Mỗi lần ngắt, CPU 0 tăng biến toàn cục \cc{ticks} và gọi \cc{wakeup(\&ticks)}. Đo trên máy của nhóm, \cc{sleep 10} kéo dài khoảng 0,996 giây, khớp với ước lượng $10 \times 0{,}1$\,s.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small,
+  box/.style={draw=hcmus,fill=white,rounded corners=2pt,align=center,inner sep=3pt,text width=3.2cm,minimum height=1.25cm},
+  arr/.style={-{Stealth[length=2.2mm]},semithick,hcmus},
+  lbl/.style={font=\scriptsize\itshape,text=hcmus}]
+  \fill[hcmus!5] (-0.55,0.85) rectangle (16.15,-0.85);
+  \fill[hcmus!12] (-0.55,-1.45) rectangle (16.15,-4.95);
+  \node[rotate=90,font=\scriptsize\bfseries,text=hcmus] at (-0.3,0) {USER};
+  \node[rotate=90,font=\scriptsize\bfseries,text=hcmus] at (-0.3,-3.2) {KERNEL};
+  \node[box] (u1) at (1.75,0) {\textbf{user/sleep.c}\\\cc{pause(n)}\\(\cc{n} trong \cc{a0})};
+  \node[box] (u2) at (5.85,0) {\textbf{user/usys.S}\\\cc{li a7, SYS\_pause}\\\cc{ecall}};
+  \node[box] (u3) at (14.1,0) {\textbf{user/sleep.c}\\\cc{pause} trả về\\\cc{exit(0)}};
+  \node[box] (k1) at (1.75,-2.4) {\textbf{uservec, usertrap()}\\lưu thanh ghi user\\vào \cc{trapframe}};
+  \node[box] (k2) at (5.85,-2.4) {\textbf{syscall()}\\\cc{num = a7} (= 13)\\gọi \cc{syscalls[num]}};
+  \node[box] (k3) at (9.95,-2.4) {\textbf{sys\_pause()}\\\cc{argint(0, \&n)}\\ngủ tới khi đủ \cc{n} tick};
+  \node[box] (k4) at (14.1,-2.4) {\textbf{userret}\\\cc{a0} = 0\\\cc{sret}};
+  \node[box,text width=4.6cm,minimum height=0.95cm] (k5) at (9.95,-4.25) {\textbf{clockintr()} (mỗi $\approx$ 0,1 s)\\\cc{ticks++; wakeup(\&ticks)}};
+  \draw[arr] (u1) -- node[lbl,above]{gọi hàm} (u2);
+  \draw[arr] (u2.south) |- node[lbl,pos=0.25,right]{ecall} (1.75,-1.15) -- (k1.north);
+  \draw[arr] (k1) -- (k2);
+  \draw[arr] (k2) -- (k3);
+  \draw[arr] (k3) -- node[lbl,above]{trả 0} (k4);
+  \draw[arr] (k4) -- node[lbl,right]{sret} (u3);
+  \draw[arr,dashed] (k5) -- node[lbl,right]{đánh thức} (k3);
+\end{tikzpicture}
+\caption{Đường đi của lời gọi \cc{pause(n)} từ user mode vào kernel và quay lại.}
+\end{figure}
+
+\begin{enumerate}
+  \item \cc{pause} khai báo trong \cc{user/user.h}; thân hàm là stub do \cc{user/usys.pl} sinh ra. Stub nạp \cc{SYS\_pause} = 13 vào \cc{a7}; theo quy ước gọi hàm RISC-V, tham số \cc{n} đã nằm trong \cc{a0}. Sau đó stub thực thi \cc{ecall}.
+  \item \cc{ecall} chuyển CPU sang supervisor mode và nhảy tới \cc{uservec} (\cc{kernel/trampoline.S}), nơi thanh ghi user được lưu vào \cc{trapframe}. \cc{usertrap()} thấy \cc{scause = 8} (system call) nên gọi \cc{syscall()}. Hàm này đọc \cc{trapframe->a7} và gọi \cc{syscalls[13]}, tức \cc{sys\_pause()}.
+  \item \cc{sys\_pause()} lấy \cc{n} bằng \cc{argint(0, \&n)}, tức đọc \cc{trapframe->a0}. Hàm ghi nhớ \cc{ticks0 = ticks}, rồi ngủ trên kênh \cc{\&ticks} cho tới khi \cc{ticks - ticks0 >= n}; process bị kill thì trả về $-1$. Kết quả được ghi vào \cc{trapframe->a0}, rồi \cc{userret} và \cc{sret} đưa CPU về user mode, ngay sau lệnh \cc{ecall}.
+\end{enumerate}
+
+\subsection{Thiết kế và cài đặt}
+\begin{itemize}
+  \item \textbf{Kiểm tra số đối số:} nếu \cc{argc != 2} thì in \cc{Usage: sleep ticks} ra stderr (fd 2) rồi \cc{exit(1)}.
+  \item \textbf{Kiểm tra chuỗi số:} \cc{atoi} của xv6 dừng ở ký tự đầu tiên không phải chữ số và không kiểm tra tràn số, nên \cc{sleep -1} hay \cc{sleep 99999999999} sẽ bị hiểu sai mà không báo lỗi. Chương trình chỉ chấp nhận chữ số. Trước mỗi lần nhân 10, nó kiểm tra \cc{ticks > (2147483647 - d) / 10} để phát hiện tràn \cc{int}. Chuỗi rỗng, số âm, ký tự lạ và số quá lớn đều bị từ chối với \cc{exit(1)}.
+  \item \textbf{Gọi \cc{pause}:} \cc{pause} trả về giá trị âm (process bị kill) thì \cc{exit(1)}; bình thường thì \cc{exit(0)}.
+\end{itemize}
+
+\srcname{user/sleep.c – kiểm tra chuỗi số và gọi pause}
+\begin{lstlisting}[firstnumber=18]
+  for (char *p = argv[1]; *p; p++) {
+    if (*p < '0' || *p > '9' || ticks > (2147483647 - (*p - '0')) / 10) {
+      fprintf(2, "sleep: ticks must be a non-negative integer\n");
+      exit(1);
+    }
+    ticks = ticks * 10 + (*p - '0');
+  }
+  if (pause(atoi(argv[1])) < 0) {
+    fprintf(2, "sleep: pause failed\n");
+    exit(1);
+  }
+  exit(0);
+\end{lstlisting}
+
+\begin{minipage}[c]{0.45\linewidth}
+\centering
+\includegraphics[width=\linewidth,trim=0 640 500 210,clip]{sleep.png}
+\captionof{figure}{\cc{sleep} chạy trong xv6.}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.51\linewidth}
+\small Thiếu đối số thì chương trình in hướng dẫn sử dụng. \cc{sleep 10} trả lại dấu nhắc sau khoảng 1 giây, \cc{sleep 0} trả về ngay, còn \cc{sleep -1} bị từ chối. Autograder đặt breakpoint tại \cc{sys\_pause} để xác nhận chương trình thực sự gọi system call, chứ không dùng vòng lặp chờ bận.
+\end{minipage}
+
+% =================================================================== 4
+\section{Bài 2 – sixfive}
+
+\textbf{Yêu cầu.} Với mỗi tệp, in mọi \emph{số} chia hết cho 5 hoặc 6 theo thứ tự xuất hiện. Số là dãy chữ số được phân cách bởi các ký tự trong \cc{" -\textbackslash r\textbackslash t\textbackslash n./,"}. Không có đối số thì đọc stdin; không mở được tệp thì in \cc{sixfive: cannot open xxx}.
+
+\subsection{Phân tích định nghĩa “số”}
+Điểm mấu chốt: chỉ ký tự phân cách (hoặc đầu/cuối tệp) mới kết thúc một token. Dãy chữ số dính với bất kỳ ký tự nào khác thì cả token không phải là số. Bảng~\ref{tab:token} phân tích các trường hợp lấy từ dữ liệu kiểm thử thật (\cc{sixfive.txt} và \cc{README} của xv6).
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l l X@{}}
+\headrow \thd{Đoạn input} & \thd{Kết quả} & \thd{Giải thích} \\
+\cc{18-4} & \cc{18} & \cc{-} là phân cách; 18 chia hết cho 6, còn 4 không chia hết cho 5 hay 6. \\
+\rowcolor{rowalt}
+\cc{06} ở cuối tệp, không có \cc{\textbackslash n} & \cc{6} & Token cuối kết thúc bởi EOF. Chương trình in giá trị số nên bỏ số 0 đứng đầu. \\
+\cc{Version 6 (v6).} & \cc{6} & \cc{6} đứng giữa hai dấu cách. \cc{(v6)} không phải số vì chữ số dính với \cc{v}, \cc{(} và \cc{)}. \\
+\rowcolor{rowalt}
+\cc{.../6.1810/} & \cc{6}, \cc{1810} & \cc{.} và \cc{/} đều là phân cách. \\
+\cc{(June 14,\textbackslash n2000))} & \cc{14} bị loại & \cc{14} hợp lệ nhưng không chia hết. \cc{)} không phải phân cách nên \cc{2000))} không hợp lệ, dù 2000 chia hết cho 5. \\
+\bottomrule
+\end{tabularx}
+\caption{Một số trường hợp tách token đặc trưng.}\label{tab:token}
+\end{table}
+
+\subsection{Thuật toán}
+Chương trình đọc input theo khối 512 byte và xử lý từng ký tự như một máy trạng thái. Trạng thái gồm \cc{token} (các chữ số đã gom), \cc{len}, \cc{valid} (token còn hợp lệ hay không) và \cc{remainder} (phần dư theo modulo 30).
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\headrow \thd{Ký tự \cc{c}} & \thd{Hành động} \\
+Thuộc tập phân cách & Gọi \cc{emit()} cho token hiện tại, sau đó đặt lại \cc{len = 0}, \cc{remainder = 0}, \cc{valid = 1}. \\
+\rowcolor{rowalt}
+Chữ số \cc{'0'}–\cc{'9'} & Nếu \cc{valid}: nối \cc{c} vào \cc{token}, cập nhật \cc{remainder = (10·remainder + d) mod 30}. \\
+Ký tự khác (chữ cái, ngoặc, \ldots) & Đặt \cc{valid = 0}: token bị loại cho tới ký tự phân cách kế tiếp. \\
+\rowcolor{rowalt}
+EOF (\cc{read} trả về 0) & Gọi \cc{emit()} lần cuối để không bỏ sót số ở cuối tệp. \\
+\bottomrule
+\end{tabularx}
+\caption{Quy tắc chuyển trạng thái; \cc{emit()} in token nếu \cc{valid}, \cc{len > 0} và \cc{remainder} chia hết cho 5 hoặc 6.}
+\end{table}
+
+\textbf{Chống tràn số.} Chuyển token sang \cc{int} sẽ bị tràn khi số dài hơn 10 chữ số, nên chương trình chỉ lưu phần dư theo modulo 30. Có hai tính chất bảo đảm cách này đúng:
+\begin{itemize}
+  \item Vì $30 = \mathrm{BCNN}(5, 6)$, nếu $n \equiv r \pmod{30}$ thì $5 \mid n \Leftrightarrow 5 \mid r$ và $6 \mid n \Leftrightarrow 6 \mid r$.
+  \item $(10a + d) \bmod 30 = (10\,(a \bmod 30) + d) \bmod 30$, nên phần dư được cập nhật dần theo từng chữ số mà không vượt quá 29.
+\end{itemize}
+Để in đúng số dài tùy ý, các chữ số được lưu trong buffer cấp phát động (khởi đầu 64 byte, nhân đôi khi đầy). Khi in, \cc{emit()} bỏ các số 0 đứng đầu, nên \cc{06} được in thành \cc{6} – đúng định dạng autograder so khớp (\cc{\^{}6}).
+
+\textbf{Các chi tiết khác.}
+\begin{itemize}
+  \item \textbf{Số vắt qua hai khối đọc:} các biến trạng thái nằm ngoài vòng \cc{read}, nên số bị cắt ở biên khối 512 byte vẫn được ghép đúng.
+  \item \textbf{Token cuối tệp:} khi gặp EOF, chương trình gọi \cc{emit()} thêm một lần (dòng 64) cho token cuối.
+  \item \textbf{Ký tự NUL:} \cc{'\textbackslash 0'} không phải phân cách. Với \cc{strchr} chuẩn của C, \cc{strchr(s, '\textbackslash 0')} trả về vị trí ký tự kết thúc chuỗi, nên chương trình kiểm tra \cc{c != '\textbackslash 0'} trước khi gọi \cc{strchr}.
+  \item \textbf{Nhiều tệp và xử lý lỗi:} trạng thái là biến cục bộ của \cc{sixfive(fd)}, nên mỗi tệp được xử lý độc lập; mọi fd đã mở đều được \cc{close}. Tệp mở lỗi thì in thông báo, ghi nhận lỗi rồi xử lý tiếp tệp sau; mã thoát là 1 nếu có lỗi.
+  \item \textbf{Độ phức tạp:} $O(N)$ thời gian với $N$ byte input; bộ nhớ $O(L + 512)$ với $L$ là độ dài token hợp lệ dài nhất.
+\end{itemize}
+
+\srcname{user/sixfive.c – vòng xử lý chính (lược các dòng 41–54 mở rộng buffer)}
+\begin{lstlisting}[firstnumber=30]
+  while ((n = read(fd, input, sizeof(input))) > 0) {
+    for (int i = 0; i < n; i++) {
+      char c = input[i];
+      // NUL is not a separator, even though strchr can find it at the end.
+      if (c != '\0' && strchr(" -\r\t\n./,", c)) {
+        emit(token, len, valid, remainder);
+        len = remainder = 0;
+        valid = 1;
+      } else if (c < '0' || c > '9') {
+        valid = 0;
+      } else if (valid) {
+\end{lstlisting}
+\vspace{-2pt}
+\begin{lstlisting}[firstnumber=55]
+        token[len++] = c;
+        // Modulo 30 preserves divisibility by 5 and 6 without overflow.
+        remainder = (remainder * 10 + c - '0') % 30;
+\end{lstlisting}
+
+\begin{minipage}[c]{0.42\linewidth}
+\centering
+\includegraphics[width=\linewidth,trim=0 500 490 210,clip]{sixfive.png}
+\captionof{figure}{\cc{sixfive} với tệp, stdin và tệp không tồn tại.}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.54\linewidth}
+\small Với \cc{sixfive.txt}, chương trình in 5, 100, 18, 6. Với stdin \cc{xv6 6x 12 30 7}, hai token \cc{xv6} và \cc{6x} bị loại vì chữ số dính chữ cái, 7 không chia hết, nên chỉ 12 và 30 được in. Với tệp không tồn tại, chương trình in đúng thông báo \cc{sixfive: cannot open absent}.
+\end{minipage}
+
+% =================================================================== 5
+\section{Bài 3 – memdump}
+
+\textbf{Yêu cầu.} Cài đặt \cc{memdump(char *fmt, char *data, int len)}: diễn giải \cc{len} byte tại \cc{data} theo chuỗi định dạng \cc{fmt}; mỗi ký tự định dạng in một giá trị trên một dòng. Hàm \cc{main} do đề cung cấp: không có đối số thì chạy năm ví dụ dựng sẵn; có một đối số thì đọc tối đa 512 byte từ stdin làm dữ liệu.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}c c l l X@{}}
+\headrow \thd{Ký tự} & \thd{Số byte} & \thd{Kiểu C} & \thd{In bằng} & \thd{Ý nghĩa} \\
+\cc{i} & 4 & \cc{int} & \cc{\%d} & Số nguyên có dấu 32 bit \\
+\rowcolor{rowalt}
+\cc{p} & 8 & \cc{uint64} & \cc{\%lx} & Số 64 bit dạng hex, không có tiền tố \cc{0x} \\
+\cc{h} & 2 & \cc{short} & \cc{\%d} & Số nguyên có dấu 16 bit \\
+\rowcolor{rowalt}
+\cc{c} & 1 & \cc{char} & \cc{\%c} & Một ký tự ASCII \\
+\cc{s} & 8 & \cc{char *} & \cc{\%s} & 8 byte là \emph{địa chỉ} của một C string; in chuỗi tại địa chỉ đó \\
+\rowcolor{rowalt}
+\cc{S} & phần còn lại & \cc{char[]} & từng ký tự & Các byte \emph{chính là} nội dung chuỗi; in tới NUL hoặc hết dữ liệu \\
+\bottomrule
+\end{tabularx}
+\caption{Các ký tự định dạng của \cc{memdump}.}
+\end{table}
+
+\subsection{Bố cục bộ nhớ của các ví dụ}
+RISC-V lưu số nguyên theo thứ tự \emph{little-endian}: byte ở địa chỉ thấp là byte thấp của giá trị. Hình~\ref{fig:layout} vẽ \cc{struct sss} của ví dụ 4 và 5. Các trường chiếm 23 byte; trình biên dịch thêm 1 byte đệm để kích thước là bội của 8 (độ căn chỉnh của con trỏ \cc{ptr}), nên \cc{sizeof(struct sss) = 24}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.565cm,y=1cm,font=\scriptsize]
+  \newcommand{\seg}[5]{\draw[hcmus,fill=#5] (#1,#3) rectangle (#2,#3+0.62); \node[align=center] at ({(#1+#2)/2},#3+0.31) {#4};}
+  % nhãn hàng
+  \foreach \y/\lab in {0.95/Offset, 0.31/Trường, -0.5/Byte (hex), -1.31/{VD 4: \cc{pihcS}}, -2.12/{VD 5: \cc{sccccc}}}
+    \node[anchor=east,font=\scriptsize\bfseries,text=hcmus] at (-0.3,\y) {\lab};
+  \foreach \x in {0,8,12,14,15,23,24} \node at (\x,0.95) {\x};
+  % hàng trường
+  \seg{0}{8}{0}{\cc{ptr} $\rightarrow$ \cc{"hello"}}{boxbg}
+  \seg{8}{12}{0}{\cc{num1}\\1819438967}{boxbg}
+  \seg{12}{14}{0}{\cc{num2}\\100}{boxbg}
+  \seg{14}{15}{0}{\tiny\cc{byte}}{boxbg}
+  \seg{15}{23}{0}{\cc{bytes[8]} = \cc{"xyzzy"}}{boxbg}
+  \draw[hcmus,pattern=north east lines,pattern color=gray!60] (23,0) rectangle (24,0.62);
+  % hàng byte
+  \draw[hcmus,fill=white] (0,-0.81) rectangle (8,-0.19); \node at (4,-0.5) {địa chỉ của \cc{"hello"}};
+  \foreach \bt [count=\i from 8] in {77,6F,72,6C,64,00,7A,78,79,7A,7A,79,00,??,??,--}
+    {\draw[hcmus,fill=white] (\i,-0.81) rectangle (\i+1,-0.19); \node[font=\tiny\ttfamily] at (\i+0.5,-0.5) {\bt};}
+  % ví dụ 4
+  \seg{0}{8}{-1.62}{\cc{p} $\rightarrow$ in địa chỉ (hex)}{hcmus!12}
+  \seg{8}{12}{-1.62}{\cc{i} $\rightarrow$ 1819438967}{hcmus!12}
+  \seg{12}{14}{-1.62}{\cc{h}$\rightarrow$100}{hcmus!12}
+  \seg{14}{15}{-1.62}{\cc{c}}{hcmus!12}
+  \seg{15}{24}{-1.62}{\cc{S} $\rightarrow$ \cc{xyzzy} (dừng ở NUL)}{hcmus!12}
+  % ví dụ 5
+  \seg{0}{8}{-2.43}{\cc{s} $\rightarrow$ \cc{hello}}{hcmus!12}
+  \foreach \cch [count=\i from 8] in {w,o,r,l,d}
+    {\draw[hcmus,fill=hcmus!12] (\i,-2.43) rectangle (\i+1,-1.81); \node[align=center,font=\tiny] at (\i+0.5,-2.12) {\cc{c}\\\cc{\cch}};}
+  \draw[gray!60,fill=gray!8] (13,-2.43) rectangle (24,-1.81); \node[text=gray] at (18.5,-2.12) {không dùng};
+\end{tikzpicture}
+\caption{Bố cục \cc{struct sss} (24 byte) và cách ví dụ 4, 5 diễn giải cùng một vùng nhớ.}\label{fig:layout}
+\end{figure}
+
+\begin{minipage}[t]{0.6\linewidth}
+\vspace{0pt}
+\begin{itemize}
+  \item \textbf{Ví dụ 4 (\cc{pihcS}):} \cc{p} in địa chỉ chuỗi \cc{"hello"} dạng hex (phụ thuộc bản build; ở máy nhóm là \cc{CD0}). \cc{i} đọc \cc{77 6F 72 6C}, tạo thành \cc{0x6C726F77} = 1819438967. \cc{h} đọc \cc{64 00}, ra 100. \cc{c} đọc \cc{7A}, ra \cc{z}. \cc{S} in phần còn lại tới NUL, ra \cc{xyzzy}.
+  \item \textbf{Ví dụ 5 (\cc{sccccc}):} \cc{s} đọc \cc{ptr} và in \cc{hello}. Năm lệnh \cc{c} đọc offset 8–12: bốn byte của \cc{num1} (\cc{w o r l}) và byte thấp của \cc{num2} (\cc{0x64} = \cc{d}), ghép thành \cc{world}.
+  \item \textbf{Ví dụ 1–3:} \cc{ii} đọc hai phần tử của \cc{\{61810, 2026\}}. \cc{S} đọc trực tiếp các ký tự của \cc{"a string"}. \cc{s} đọc 8 byte của \emph{biến con trỏ} \cc{s} rồi in chuỗi \cc{"another"} mà nó trỏ tới. Đây là khác biệt cốt lõi: \cc{s} truy cập gián tiếp qua con trỏ, còn với \cc{S} thì dữ liệu chính là chuỗi.
+  \item \textbf{Chế độ stdin:} \cc{echo deadc0de | memdump hhcccc} nhận 9 byte \cc{64 65 61 64 63 30 64 65 0A}. \cc{h} thứ nhất đọc \cc{64 65}, ra \cc{0x6564} = 25956; \cc{h} thứ hai đọc \cc{61 64}, ra \cc{0x6461} = 25697; bốn lệnh \cc{c} in \cc{c}, \cc{0}, \cc{d}, \cc{e}.
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.36\linewidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth,trim=0 220 500 210,clip]{memdump.png}
+\captionof{figure}{Năm ví dụ, chế độ stdin và lỗi thiếu dữ liệu.}
+\end{minipage}
+
+\subsection{Thuật toán và cài đặt}
+Với mỗi ký tự của \cc{fmt}, chương trình làm bốn bước:
+\begin{enumerate}
+  \item Xác định số byte \cc{size}; ký tự định dạng lạ thì báo lỗi và dừng.
+  \item Nếu \cc{len < size} thì in \cc{memdump: not enough data for 'x'} và dừng.
+  \item Sao chép \cc{size} byte vào biến đúng kiểu bằng \cc{memmove}, rồi in giá trị.
+  \item Tăng \cc{data} và giảm \cc{len} đi \cc{size}.
+\end{enumerate}
+Riêng \cc{S} dùng hết phần dữ liệu còn lại nên kết thúc vòng lặp. Ba quyết định thiết kế quan trọng:
+\begin{itemize}
+  \item \textbf{Kiểm tra biên trước khi đọc.} \cc{main} đã \cc{memset} buffer về 0, nên đọc lố \cc{len} không gây lỗi bộ nhớ nhưng cho kết quả sai. Ví dụ với \cc{echo a | memdump i}, nếu không kiểm tra thì chương trình đọc 4 byte \cc{61 0A 00 00} và in 2657 thay vì báo thiếu dữ liệu; autograder kiểm tra đúng trường hợp này. Dữ liệu từ stdin cũng có thể không có NUL, nên \cc{S} dừng ở NUL \emph{hoặc} khi hết \cc{len}.
+  \item \textbf{\cc{memmove} thay vì ép kiểu con trỏ.} Với định dạng như \cc{ci}, trường \cc{i} bắt đầu ở offset 1, không chia hết cho 4. Khi đó \cc{*(int *)data} là truy cập không căn chỉnh, một hành vi không xác định theo chuẩn C; \cc{memmove} sao chép từng byte nên đúng với mọi offset.
+  \item \textbf{Đặc tả \cc{printf} cho \cc{p}.} Trong \cc{user/printf.c}, \cc{\%x} lấy tham số kiểu \cc{uint32} nên mất 32 bit cao, còn \cc{\%p} luôn in tiền tố \cc{0x} và đủ 16 chữ số. Chỉ \cc{\%lx} in đúng giá trị 64 bit, ví dụ \cc{6867666564636261} cho input \cc{abcdefgh}.
+\end{itemize}
+
+\srcname{user/memdump.c – xác định kích thước, kiểm tra biên và xử lý S}
+\begin{lstlisting}[firstnumber=63]
+  for (; *fmt; fmt++) {
+    int size;
+    switch (*fmt) {
+    case 'i': size = 4; break;
+    case 'p': case 's': size = 8; break;
+    case 'h': size = 2; break;
+    case 'c': size = 1; break;
+    case 'S': size = 0; break;
+    default:
+      fprintf(2, "memdump: unknown format '%c'\n", *fmt);
+      return;
+    }
+    if (len < size) {
+      fprintf(2, "memdump: not enough data for '%c'\n", *fmt);
+      return;
+    }
+\end{lstlisting}
+\vspace{-2pt}
+\begin{lstlisting}[firstnumber=106]
+    case 'S':
+      // Stdin need not include a NUL: never scan beyond the valid bytes.
+      for (int i = 0; i < len && data[i] != '\0'; i++)
+        printf("%c", (uchar)data[i]);
+      printf("\n");
+      return; // S consumes the rest of the data.
+\end{lstlisting}
+
+% =================================================================== 6
+\section{Bài 4 – find}
+
+\textbf{Yêu cầu.} \cc{find <path> <name>} tìm mọi tệp \emph{và thư mục} có tên đúng bằng \cc{name} trong cây thư mục gốc \cc{path}, rồi in đường dẫn của chúng.
+
+\subsection{Cấu trúc thư mục trong xv6}
+Thư mục là một tệp đặc biệt (\cc{st.type == T\_DIR}). Nội dung của nó là mảng \cc{struct dirent} 16 byte (\cc{kernel/fs.h}): 2 byte \cc{inum} và 14 byte tên (\cc{DIRSIZ = 14}). Tên dài đúng 14 ký tự thì \emph{không có} NUL kết thúc. Entry có \cc{inum = 0} là ô trống (tệp đã xóa). Mọi thư mục đều có hai entry đặc biệt: \cc{.} trỏ tới chính nó và \cc{..} trỏ tới thư mục cha. Để duyệt thư mục, chương trình \cc{open} nó, dùng \cc{fstat} để phân biệt tệp với thư mục, rồi \cc{read} các \cc{struct dirent}.
+
+\subsection{Thuật toán duyệt theo chiều sâu (DFS)}
+\begin{minipage}[t]{0.5\linewidth}
+\vspace{0pt}
+\begin{pseudobox}
+\begin{Verbatim}[fontsize=\footnotesize]
+find(path):
+  fd = open(path); fstat(fd, &st)
+  nếu st.type != T_DIR:
+    close(fd); match(path); return
+  đọc toàn bộ dirent; close(fd)
+  match(path)   # thư mục cũng có thể khớp
+  với mỗi entry e:
+    bỏ qua nếu e.inum == 0
+         hoặc e.name là "." / ".."
+    find(path + "/" + e.name)
+
+match(path):
+  in path nếu tên cuối == name
+\end{Verbatim}
+\end{pseudobox}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.47\linewidth}
+\vspace{0pt}
+\begin{pseudobox}
+\begin{Verbatim}[fontsize=\footnotesize]
+find(".")
+├─ find("./README")
+├─ find("./b")        → ./b
+└─ find("./a")
+   ├─ find("./a/b")   → ./a/b
+   └─ find("./a/aa")
+      └─ find("./a/aa/b")
+                      → ./a/aa/b
+\end{Verbatim}
+\end{pseudobox}
+{\small Cây lời gọi đệ quy cho lệnh \cc{find . b} trong ví dụ của đề. Thứ tự kết quả là thứ tự entry trong thư mục, chương trình không sắp xếp.\par}
+\end{minipage}
+
+\subsection{Các vấn đề cần xử lý}\label{sec:find-issues}
+\begin{itemize}
+  \item \textbf{Bỏ qua \cc{.} và \cc{..}:} đệ quy vào \cc{.} tạo đường dẫn \cc{./././\ldots} cho tới khi vượt \cc{MAXPATH}; đệ quy vào \cc{..} quay lên thư mục cha và duyệt lại cả cây, làm mỗi kết quả bị in nhiều lần. Autograder kiểm tra mỗi tệp chỉ được in đúng một lần.
+  \item \textbf{Tên dài 14 ký tự:} \cc{de.name} được chép vào \cc{name[DIRSIZ + 1]} và gán \cc{name[DIRSIZ] = '\textbackslash 0'} trước khi so sánh bằng \cc{strcmp}. Toán tử \cc{==} chỉ so sánh địa chỉ của hai chuỗi.
+  \item \textbf{Giới hạn file descriptor:} mỗi process có tối đa \cc{NOFILE = 16} fd, trong đó fd 0, 1, 2 đã dùng cho stdin, stdout, stderr. Nếu giữ fd thư mục mở trong lúc đệ quy (như cách \cc{ls.c} đọc từng entry), mỗi tầng chiếm một fd, và cây sâu hơn khoảng 13 tầng sẽ khiến \cc{open} thất bại. Vì vậy nhóm đọc toàn bộ thư mục một lần vào buffer cấp phát động kích thước \cc{st.size}, kiểm tra số byte đọc được, rồi \cc{close(fd)} \emph{trước} khi đệ quy. Kiểm thử bổ sung xác nhận chương trình duyệt đúng cây sâu 24 tầng.
+  \item \textbf{Đường dẫn:} đường dẫn con được ghép trong buffer cấp phát động để stack frame nhỏ, vì user stack của lab util chỉ có 2 trang (8~KB). Đường dẫn vượt \cc{MAXPATH = 128} bị từ chối. Dấu \cc{/} chỉ được chèn khi \cc{path} chưa kết thúc bằng \cc{/}; \cc{main} bỏ các \cc{/} thừa ở cuối đối số (\cc{a/} thành \cc{a}, còn \cc{/} giữ nguyên). Nhờ vậy kết quả không có dạng \cc{a//b}.
+  \item \textbf{Khớp tên và lỗi:} \cc{match()} lấy phần sau dấu \cc{/} cuối cùng và so với \cc{name}, áp dụng cho cả tệp lẫn thư mục (ví dụ \cc{find . aa} in \cc{./a/aa}). Đường dẫn không mở, \cc{fstat} hay đọc được thì chương trình in lỗi ra stderr, bỏ qua nhánh đó và tiếp tục duyệt các nhánh khác; mã thoát là 1.
+\end{itemize}
+
+\begin{minipage}[t]{0.63\linewidth}
+\vspace{0pt}
+\srcname{user/find.c – đọc thư mục và duyệt entry}
+\begin{lstlisting}[firstnumber=67,xleftmargin=22pt]
+  struct dirent *entries = malloc(st.size);
+  if (entries == 0) {
+    fprintf(2, "find: out of memory\n");
+    close(fd);
+    return 1;
+  }
+  int n = read(fd, entries, st.size);
+  close(fd);
+  if (n < 0 || (uint)n != st.size || n % sizeof(*entries) != 0) {
+    fprintf(2, "find: cannot read directory %s\n", path);
+    free(entries);
+    return 1;
+  }
+\end{lstlisting}
+\vspace{-3pt}
+\begin{lstlisting}[firstnumber=84,xleftmargin=22pt]
+  for (int i = 0; i < n / sizeof(*entries); i++) {
+    if (entries[i].inum == 0)
+      continue;
+    char name[DIRSIZ + 1];
+    memmove(name, entries[i].name, DIRSIZ);
+    name[DIRSIZ] = '\0';
+    if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
+      continue;
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.34\linewidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth,trim=0 580 500 210,clip]{find.png}
+\captionof{figure}{Ba tệp \cc{b} ở các độ sâu khác nhau và thư mục \cc{aa} khớp tên.}
+\end{minipage}
+
+% =================================================================== 7
+\section{Bài 5 – find -exec}
+
+\textbf{Yêu cầu.} Với \cc{find <path> <name> -exec cmd [args...]}, chương trình chạy \cc{cmd args... <đường-dẫn>} cho mỗi kết quả, thay vì in đường dẫn. Không có \cc{-exec} thì \cc{find} giữ nguyên hành vi của bài 4.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small,
+  cell/.style={draw=hcmus,fill=white,minimum width=1.35cm,minimum height=0.6cm,font=\small\ttfamily},
+  arr/.style={-{Stealth[length=2mm]},semithick,hcmus},
+  ev/.style={draw=hcmus,fill=boxbg,rounded corners=2pt,align=center,inner sep=3pt,font=\footnotesize},
+  lbl/.style={font=\scriptsize\itshape,text=hcmus}]
+  % (a) vector đối số
+  \node[anchor=east,font=\scriptsize\bfseries,text=hcmus] at (-0.1,0) {argv của find};
+  \foreach \w [count=\i from 0] in {find,.,wc,-exec,echo,hi}
+    {\node[cell] (a\i) at (\i*1.35+0.675,0) {\w}; \node[font=\tiny,text=gray] at (\i*1.35+0.675,0.46) {[\i]};}
+  \node[anchor=east,font=\scriptsize\bfseries,text=hcmus] at (5.3,-1.25) {argv cho exec};
+  \foreach \w [count=\i from 0] in {echo,hi,./wc,0}
+    {\node[cell,fill=boxbg] (b\i) at (\i*1.35+6.075,-1.25) {\w}; \node[font=\tiny,text=gray] at (\i*1.35+6.075,-1.71) {[\i]};}
+  \draw[arr] (a4) -- (b0); \draw[arr] (a5) -- (b1);
+  \node[lbl,anchor=west] at (8.35,0) {đường dẫn tìm được};
+  \draw[arr] (8.775,-0.17) -- (b2.north);
+  \node[lbl,anchor=west] at (10.9,-1.25) {con trỏ null kết thúc};
+  % (b) dòng thời gian fork/exec/wait
+  \begin{scope}[yshift=-3.2cm]
+    \node[anchor=east,font=\scriptsize\bfseries,text=hcmus] at (-0.1,0) {process cha};
+    \node[anchor=east,font=\scriptsize\bfseries,text=hcmus] at (-0.1,-1.35) {process con};
+    \draw[hcmus,thick,-{Stealth[length=2.2mm]}] (0,0) -- (14.3,0);
+    \node[ev] (m) at (0.95,0) {khớp \cc{./wc}};
+    \node[ev] (f) at (2.85,0) {\cc{fork()}};
+    \node[ev,minimum width=5.3cm,dashed] (w) at (7.5,0) {\cc{wait(\&status)} – chờ con kết thúc};
+    \node[ev] (n) at (12.45,0) {duyệt entry tiếp theo};
+    \draw[hcmus,thick] (2.85,-0.3) |- (3.1,-1.35);
+    \node[ev] (e) at (4.65,-1.35) {\cc{exec("echo", argv)}};
+    \node[ev] (o) at (7.65,-1.35) {\cc{echo} in \cc{hi ./wc}};
+    \node[ev] (x) at (9.75,-1.35) {\cc{exit(0)}};
+    \draw[arr] (e) -- (o); \draw[arr] (o) -- (x);
+    \draw[arr,dashed] (x.north) -- node[lbl,right]{status} (9.75,-0.3);
+    \node[lbl,align=left,anchor=north west] at (3.2,-1.75) {exec thất bại $\rightarrow$ in \cc{find: exec ... failed}, \cc{exit(1)}};
+  \end{scope}
+\end{tikzpicture}
+\caption{Dựng vector đối số cho \cc{find . wc -exec echo hi} và trình tự \cc{fork}–\cc{exec}–\cc{wait}.}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Dựng vector đối số:} các từ sau \cc{-exec} được chép vào mảng toàn cục \cc{command[MAXARG]}. Với mỗi kết quả, đường dẫn được đặt vào \cc{command[ncommand]}, rồi gán \cc{command[ncommand + 1] = 0}, vì \cc{exec} yêu cầu \cc{argv} kết thúc bằng con trỏ null. \cc{main} kiểm tra \cc{ncommand + 2 <= MAXARG} (= 32), giới hạn mà kernel áp cho \cc{exec}. Thiếu \cc{cmd} (ví dụ \cc{find . b -exec}) hoặc từ thứ tư không phải \cc{-exec} thì báo sai cú pháp.
+  \item \textbf{\cc{fork()}} nhân bản process \cc{find}: trả về 0 trong process con, PID của con trong process cha, và giá trị âm nếu lỗi. Không thể gọi \cc{exec} trực tiếp trong \cc{find}, vì \cc{exec} thay thế chính process đang chạy và việc duyệt cây sẽ dừng ngay ở kết quả đầu tiên.
+  \item \textbf{Process con gọi \cc{exec(command[0], command)}.} Thành công thì \cc{exec} thay toàn bộ ảnh bộ nhớ của con bằng chương trình \cc{cmd} và không bao giờ trả về. Thất bại (ví dụ lệnh không tồn tại) thì con in \cc{find: exec <cmd> failed} và \cc{exit(1)} ngay. Nếu không thoát, con – vốn là bản sao của \cc{find} – sẽ tiếp tục duyệt cây, in trùng kết quả và \cc{fork} thêm process.
+  \item \textbf{Process cha gọi \cc{wait(\&status)}} trước khi xử lý kết quả tiếp theo. Nhờ vậy output của các lệnh không xen kẽ, process con được thu hồi (không thành zombie), và mỗi lúc chỉ có tối đa một process con. Mã thoát khác 0 của lệnh được tính vào mã thoát của \cc{find}.
+  \item \textbf{fd và PATH:} fd thư mục đã đóng trước khi đệ quy (mục~\ref{sec:find-issues}), nên process con không thừa hưởng fd duyệt cây. Shell xv6 không có PATH: \cc{exec("echo", \ldots)} tìm tệp \cc{echo} theo thư mục hiện hành, giống \cc{user/sh.c}. Vì vậy khi đang ở thư mục con, cần ghi đường dẫn tuyệt đối, ví dụ \cc{-exec /echo}.
+\end{itemize}
+
+\srcname{user/find.c – chạy lệnh cho một kết quả}
+\begin{lstlisting}[firstnumber=26]
+  command[ncommand] = path;
+  command[ncommand + 1] = 0;
+  int pid = fork();
+  if (pid < 0) {
+    fprintf(2, "find: fork failed\n");
+    return 1;
+  }
+  if (pid == 0) {
+    exec(command[0], command);
+    fprintf(2, "find: exec %s failed\n", command[0]);
+    exit(1); // A failed exec must never resume the parent's traversal.
+  }
+  int status;
+  if (wait(&status) < 0) {
+    fprintf(2, "find: wait failed\n");
+    return 1;
+  }
+  return status != 0;
+\end{lstlisting}
+
+\begin{minipage}[c]{0.44\linewidth}
+\centering
+\includegraphics[width=\linewidth,trim=0 595 500 210,clip]{exec.png}
+\captionof{figure}{Truyền thêm đối số, lệnh không tồn tại và script \cc{findtest.sh}.}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.52\linewidth}
+\small \cc{findtest.sh} tạo ba tệp \cc{a/b}, \cc{c/b}, \cc{b} chứa chữ \cc{hello}, rồi chạy \cc{find . b -exec grep hello}. Lệnh này tương đương \cc{grep hello} lần lượt trên \cc{./a/b}, \cc{./c/b}, \cc{./b}, nên in \cc{hello} đúng ba lần. Với \cc{find . wc -exec absent}, lỗi chỉ được báo \emph{một} lần cho mỗi kết quả.
+\end{minipage}
+
+% =================================================================== 8
+\section{Kiểm thử}
+
+\subsection{Autograder}
+\begin{minipage}[t]{0.52\linewidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth,trim=0 200 0 0,clip]{grade.png}
+\captionof{figure}{Toàn bộ output của \cc{make grade}.}\label{fig:grade}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.45\linewidth}
+\vspace{0pt}
+\small
+\setlength{\parskip}{3pt}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X r@{}}
+\headrow \thd{Test của autograder} & \thd{Điểm} \\
+\multicolumn{2}{@{}l}{\textbf{sleep}} \\
+no arguments; returns; makes syscall (breakpoint tại \cc{sys\_pause}); zero and non-numeric args & 25/25 \\
+\rowcolor{rowalt}
+\multicolumn{2}{@{}l}{\textbf{sixfive}} \\
+\rowcolor{rowalt}
+sixfive\_test; sixfive\_readme; sixfive\_all; stdin and missing file & 35/35 \\
+\multicolumn{2}{@{}l}{\textbf{memdump}} \\
+examples; format ii, S, p; formats h c, bounds checking, usage & 25/25 \\
+\rowcolor{rowalt}
+\multicolumn{2}{@{}l}{\textbf{find}} \\
+\rowcolor{rowalt}
+current directory; sub-directory; recursive; missing target, no duplicates, directory match & 40/40 \\
+\multicolumn{2}{@{}l}{\textbf{find -exec}} \\
+exec; exec, multiple args; exec via sh script & 30/30 \\
+\rowcolor{rowalt}
+time (\cc{time.txt} tồn tại) & 1/1 \\
+\midrule
+\textbf{Tổng} & \textbf{156/156} \\
+\bottomrule
+\end{tabularx}
+\captionof{table}{Các test của autograder theo bài.}
+\vspace{6pt}
+
+Kết quả \cc{make grade} cho toàn bộ lab: 19/19 test đạt, tổng \textbf{156/156} điểm, mã thoát 0 (Hình~\ref{fig:grade}). Hai tệp \cc{grade-lab-util} và \cc{gradelib.py} được giữ nguyên: \cc{git diff origin/util} chỉ gồm \cc{Makefile}, \cc{time.txt} và bốn tệp trong \cc{user/}. Mã của nhóm biên dịch với \cc{-Wall -Werror} không có cảnh báo; cảnh báo \cc{RWX} của linker trong ảnh thuộc về kernel gốc.
+
+Test \emph{exec, multiple args} chạy \cc{grep hello ./findtest.sh}: \cc{grep} in 4 dòng chứa \cc{hello}, cộng thêm dòng lệnh vừa gõ được console hiển thị lại, nên có đúng 5 lần \cc{hello} như autograder đếm.
+\end{minipage}
+
+\subsection{Kiểm thử bổ sung}
+Ngoài autograder, nhóm viết script \cc{scripts/check\_extra.py} chạy 39 ca kiểm thử trực tiếp trong QEMU. Script dùng một ảnh đĩa tạm riêng, không ảnh hưởng tới \cc{fs.img} và bộ chấm gốc. Kết quả: \textbf{39/39} ca đạt.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l c X@{}}
+\headrow \thd{Chương trình} & \thd{Số ca} & \thd{Nội dung kiểm tra} \\
+\cc{sleep} & 8 & Thiếu/thừa đối số; \cc{0}; \cc{-1}; \cc{z}; \cc{2147483648}; số 21 chữ số; \cc{sleep 10} trả về sau $\approx$ 0,996 s. \\
+\rowcolor{rowalt}
+\cc{sixfive} & 6 & Đủ 8 ký tự phân cách và EOF không xuống dòng; NUL không là phân cách; số vắt qua biên 512 byte và số 601 chữ số; tiếp tục sau tệp lỗi; stdin; tệp rỗng. \\
+\cc{memdump} & 11 & Struct packed với số âm và hex đủ 64 bit; \cc{S} dừng ở NUL; \cc{S} 512 byte không có NUL; input rỗng với \cc{i}, \cc{h}, \cc{c}, \cc{p}, \cc{s}, \cc{S}; dừng ở trường thứ hai thiếu dữ liệu; định dạng lạ. \\
+\rowcolor{rowalt}
+\cc{find}, \cc{-exec} & 14 & Đúng thứ tự kết quả; khớp chính thư mục gốc; dấu \cc{/} ở cuối; \cc{path} là tệp; tên/đường dẫn không tồn tại; tên đủ 14 ký tự; \cc{-exec} nối đúng đường dẫn; exec lỗi chỉ báo một lần mỗi kết quả; \cc{-exec} thiếu lệnh; cây sâu 24 tầng không rò rỉ fd; \cc{-exec} trong cây sâu; từ chối đường dẫn vượt \cc{MAXPATH}. \\
+\bottomrule
+\end{tabularx}
+\caption{Các nhóm ca kiểm thử bổ sung.}
+\end{table}
+
+% =================================================================== 9
+\section{Thảo luận và tự đánh giá}
+
+\subsection{Khó khăn và cách khắc phục}
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\headrow \thd{Vấn đề} & \thd{Nguyên nhân} & \thd{Cách khắc phục} \\
+Không cài được công cụ theo hướng dẫn \cc{apt} & Máy phát triển dùng NixOS & Viết \cc{shell.nix} khai báo bộ biên dịch \cc{riscv64-none-elf}, QEMU, GDB; đặt \cc{TOOLPREFIX}; tắt hardening của Nix. \\
+\rowcolor{rowalt}
+Tệp tạo trong xv6 biến mất ở lần chạy sau & \cc{make qemu} bản 2026 tạo lại \cc{fs.img} mỗi lần & Dùng \cc{make qemu-fs} khi cần giữ dữ liệu; các kiểm thử tự tạo dữ liệu đầu vào. \\
+\cc{sixfive}: \cc{06} phải in thành \cc{6}; \cc{2000))} không được tính & Autograder so khớp đầu dòng; token phải gồm toàn chữ số & \cc{emit()} bỏ số 0 đứng đầu; cờ \cc{valid} chỉ được đặt lại tại ký tự phân cách. \\
+\rowcolor{rowalt}
+\cc{memdump} in 2657 cho \cc{echo a | memdump i}; giá trị \cc{p} mất 32 bit cao & Buffer của \cc{main} đã \cc{memset} nên đọc lố không gây lỗi; \cc{\%x} của xv6 nhận \cc{uint32} & Kiểm tra \cc{len < size} trước mọi lần đọc; in \cc{p} bằng \cc{\%lx}. \\
+\cc{find} có nguy cơ lỗi trên cây sâu & Mỗi tầng đệ quy giữ một fd; giới hạn \cc{NOFILE = 16} & Đọc trọn thư mục rồi đóng fd trước khi đệ quy. \\
+\rowcolor{rowalt}
+Script kiểm thử bổ sung báo \cc{exec mkdir failed} sau khi \cc{cd} vào thư mục con & Shell xv6 không tìm lệnh theo PATH & Gọi lệnh bằng đường dẫn tuyệt đối (\cc{/mkdir}, \cc{/echo}), thêm bước kiểm tra dữ liệu chuẩn bị rồi chạy lại toàn bộ kiểm thử. \\
+\bottomrule
+\end{tabularx}
+\caption{Các khó khăn gặp phải trong quá trình thực hiện.}
+\end{table}
+
+\subsection{Hạn chế}
+\begin{itemize}
+  \item \cc{memdump} ở chế độ stdin chỉ đọc tối đa 512 byte (giới hạn của \cc{main} do đề cung cấp). Định dạng \cc{s} coi 8 byte dữ liệu là một địa chỉ hợp lệ trong process; nếu dữ liệu nhập từ stdin bị diễn giải bằng \cc{s}, địa chỉ không hợp lệ gây page fault và kernel kết thúc process.
+  \item \cc{find} không sắp xếp kết quả. Mỗi thư mục được chụp lại tại thời điểm đọc, nên nếu lệnh trong \cc{-exec} thay đổi cây thư mục trong lúc duyệt thì kết quả có thể thay đổi theo. Đường dẫn tối đa \cc{MAXPATH = 128} byte; lệnh \cc{-exec} tối đa $\cc{MAXARG} - 2 = 30$ từ.
+\end{itemize}
+
+\subsection{Tự đánh giá theo thang điểm}
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l c l X@{}}
+\headrow \thd{Hạng mục} & \thd{Điểm tối đa} & \thd{Mức tự đánh giá} & \thd{Minh chứng} \\
+Bài 1 – sleep & 1.0 & Xuất sắc & 4/4 test; kiểm tra đối số, mã thoát \cc{exit(0)}/\cc{exit(1)}. \\
+\rowcolor{rowalt}
+Bài 2 – sixfive & 1.5 & Xuất sắc & 4/4 test; đủ ký tự phân cách, token cuối, chữ số dính chữ cái, stdin, lỗi mở tệp. \\
+Bài 3 – memdump & 2.5 & Xuất sắc & 3/3 test; đủ 6 định dạng, kiểm tra biên, chế độ stdin. \\
+\rowcolor{rowalt}
+Bài 4 – find & 2.0 & Xuất sắc & 4/4 test; đệ quy, bỏ \cc{.}/\cc{..}, đóng fd, kiểm tra \cc{MAXPATH}. \\
+Bài 5 – find -exec & 1.5 & Xuất sắc & 3/3 test; \cc{fork}/\cc{exec}/\cc{wait}, con thoát khi exec lỗi. \\
+\rowcolor{rowalt}
+Chất lượng mã & 0.25 & Xuất sắc & Hàm phụ trợ, tên biến rõ ràng, có chú thích, không cảnh báo biên dịch. \\
+Git và \cc{time.txt} & 0.25 & Tốt & Nhánh \cc{util} có commit của cả hai thành viên, mỗi chương trình một commit theo phân công; \cc{time.txt} và báo cáo đã commit. \\
+\rowcolor{rowalt}
+Báo cáo & 1.0 & Xuất sắc & Đủ các mục: bìa, phân công, từng bài, kiểm thử, thảo luận, tài liệu. \\
+\bottomrule
+\end{tabularx}
+\caption{Tự đánh giá theo rubric của đề.}
+\end{table}
+
+% =================================================================== 10
+\section{Tài liệu tham khảo}
+\begin{enumerate}[label={[\arabic*]},leftmargin=2.2em,itemsep=3pt,before=\raggedright]
+  \item CS333 – Hệ điều hành, \emph{Lab 1: Xv6 and Unix Utilities} (đề bài, yêu cầu nộp bài và thang điểm), 2026.
+  \item MIT 6.1810, \emph{Lab: Xv6 and Unix utilities}, Fall 2026. \url{https://pdos.csail.mit.edu/6.828/2026/labs/util.html}
+  \item R. Cox, M. F. Kaashoek, R. Morris, \emph{xv6: a simple, Unix-like teaching operating system (RISC-V)}, chương 1 “Operating system interfaces”. \url{https://mit-pdos.github.io/xv6-riscv-book/}
+  \item Mã nguồn xv6-labs-2026, nhánh \cc{util}: \cc{user/ls.c}, \cc{user/ulib.c}, \cc{user/printf.c}, \cc{user/sh.c}, \cc{kernel/sysproc.c}, \cc{kernel/syscall.c}, \cc{kernel/trap.c}, \cc{kernel/fs.h}, \cc{kernel/param.h}.
+  \item Tài liệu môn học: \emph{Seminar XV6} (kiến trúc xv6, chế độ đặc quyền, system call) và \emph{Setup-lab} (cài đặt công cụ).
+  \item Công cụ AI (OpenAI Codex, Claude): hỗ trợ thiết lập môi trường NixOS, hỗ trợ viết và rà soát mã nguồn, xây dựng script kiểm thử bổ sung, giải thích khái niệm và biên tập báo cáo. Nhóm chịu trách nhiệm về toàn bộ nội dung bài nộp.
+\end{enumerate}
+
+\end{document}
