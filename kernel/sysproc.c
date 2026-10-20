@@ -6,6 +6,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
+#include "syscall.h"
 
 uint64
 sys_exit(void)
@@ -111,15 +112,24 @@ sys_uptime(void)
   return xticks;
 }
 
-// Sandbox the calling process: from now on, every system call whose
-// bit is set in mask fails. Restrictions only accumulate, so a sandboxed
-// process cannot lift them by calling interpose() again.
+// Install restrictions atomically after validating the user pathname.
+// A later call may add mask bits or remove the pathname exception, but
+// must not grant access that an existing sandbox denies.
 uint64
 sys_interpose(void)
 {
   int mask;
+  char path[MAXPATH];
+  struct proc *p = myproc();
 
   argint(0, &mask);
-  myproc()->sbmask |= mask;
+  if (argstr(1, path, sizeof(path)) < 0)
+    return -1;
+  if ((p->sbmask & ((1U << SYS_open) | (1U << SYS_exec))) &&
+      strncmp(path, p->sbpath, MAXPATH) != 0 &&
+      strncmp(path, "-", MAXPATH) != 0)
+    return -1;
+  p->sbmask |= (uint)mask;
+  safestrcpy(p->sbpath, path, sizeof(p->sbpath));
   return 0;
 }

@@ -139,7 +139,16 @@ static uint64 (*syscalls[])(void) = {
 static int
 sandbox_rejects(struct proc *p, int num)
 {
-  return (p->sbmask >> num) & 1;
+  char path[MAXPATH];
+
+  if ((p->sbmask & (1U << num)) == 0)
+    return 0;
+  if ((num == SYS_open || num == SYS_exec) &&
+      strncmp(p->sbpath, "-", MAXPATH) != 0 &&
+      argstr(0, path, sizeof(path)) >= 0 &&
+      strncmp(path, p->sbpath, MAXPATH) == 0)
+    return 0;
+  return 1;
 }
 
 void

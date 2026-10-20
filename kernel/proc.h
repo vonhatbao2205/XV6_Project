@@ -101,5 +101,6 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  int sbmask;                  // Sandbox: bit n set => syscall n is rejected
+  uint sbmask;                 // Sandbox: bit n set => syscall n is rejected
+  char sbpath[MAXPATH]; // Exact exception for masked open/exec; "-" = none
 };
