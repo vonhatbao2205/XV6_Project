@@ -110,3 +110,16 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// Sandbox the calling process: from now on, every system call whose
+// bit is set in mask fails. Restrictions only accumulate, so a sandboxed
+// process cannot lift them by calling interpose() again.
+uint64
+sys_interpose(void)
+{
+  int mask;
+
+  argint(0, &mask);
+  myproc()->sbmask |= mask;
+  return 0;
+}
