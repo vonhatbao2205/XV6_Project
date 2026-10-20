@@ -1,0 +1,15 @@
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x80001b7a: file kernel/trap.c, line 138.
+
+Breakpoint 1, kerneltrap () at kernel/trap.c:138
+138	{
+$1 = 0xd
+$2 = 0x80001d6e
+$3 = 0x0
+   0x80001d6e <syscall+16>:	lw	a3,0(zero) # 0x0
+$4 = "init", '\000' <repeats 11 times>
+$5 = 1
+#0  kerneltrap () at kernel/trap.c:138
+#1  0x0000000080004aa8 in kernelvec () at kernel/kernelvec.S:38
+Backtrace stopped: frame did not save the PC
+[Inferior 1 (process 1) detached]

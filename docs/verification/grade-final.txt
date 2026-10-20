@@ -1,0 +1,32 @@
+== Test answers-syscall.txt ==
+answers-syscall.txt: OK
+== Test sandbox_mask ==
+$ make qemu-gdb
+sandbox_mask: OK (22.2s)
+== Test sandbox_fork ==
+$ make qemu-gdb
+sandbox_fork: OK (2.8s)
+== Test sandbox_path ==
+$ make qemu-gdb
+sandbox_path: OK (2.4s)
+== Test sandbox_most ==
+$ make qemu-gdb
+sandbox_most: OK (1.9s)
+== Test sandbox_minus ==
+$ make qemu-gdb
+sandbox_minus: OK (2.2s)
+== Test sandbox_block ==
+$ make qemu-gdb
+sandbox_block: OK (2.1s)
+== Test sandbox_escape ==
+$ make qemu-gdb
+sandbox_escape: OK (2.0s)
+== Test sandbox_forkpath ==
+$ make qemu-gdb
+sandbox_forkpath: OK (2.1s)
+== Test attack ==
+$ make qemu-gdb
+attack: OK (1.9s)
+== Test time ==
+time: OK
+Score: 60/60

@@ -3,8 +3,10 @@ Group 24120166 (Vo Nhat Bao) - 24120182 (Pham Le Huy Hoang)
 
 All values below come from real sessions of `make qemu-gdb` + gdb 17.2 on
 this branch (CPUS=3, gcc 15.2.0). Addresses depend on the build.
-Evidence (logs + screenshots): evidence/lab2/gdb-syscall.*, panic-asm.*,
-gdb-panic.* in the project folder, also included in the report.
+Original screenshots: report/images/gdb-syscall.png, panic-asm.png and
+gdb-panic.png, also included in the report. Independent verification on
+2026-10-20: docs/verification/gdb-normal.txt and gdb-panic.txt (gcc 13.3.0,
+gdb 15.1; addresses differ from the original session).
 
 Q1. Looking at the backtrace output, which function called syscall?
 
@@ -33,7 +35,7 @@ Q3. What was the previous mode that the CPU was in?
 
     User mode. p /x $sstatus = 0x200000022:
       - bit 8 (SPP)  = 0 -> the trap came from user mode (1 would be supervisor);
-      - bit 5 (SPIE) = 1 -> interrupts were enabled before the trap;
+      - bit 5 (SPIE) = 1 -> SIE was set before the trap;
       - bit 1 (SIE)  = 1 -> usertrap() called intr_on() just before syscall();
       - bits 33:32 (UXL) = 2 -> user mode runs with 64-bit registers.
 

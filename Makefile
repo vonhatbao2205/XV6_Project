@@ -215,6 +215,10 @@ UPROGS += \
 	$U/_sbtest
 endif
 
+ifeq ($(SANDBOX_AUDIT),1)
+UPROGS += $U/_sbaudit
+endif
+
 ifeq ($(LAB),traps)
 UPROGS += \
 	$U/_call\

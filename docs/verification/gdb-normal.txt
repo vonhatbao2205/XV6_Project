@@ -1,0 +1,13 @@
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x80001d5e: file kernel/syscall.c, line 147.
+
+Breakpoint 1, syscall () at kernel/syscall.c:147
+147	{
+#0  syscall () at kernel/syscall.c:147
+#1  0x0000000080001b18 in usertrap () at kernel/trap.c:68
+#2  0x0000003ffffff09c in ?? ()
+$1 = 15
+$2 = 0x200000022
+$3 = "init", '\000' <repeats 11 times>
+$4 = 1
+[Inferior 1 (process 1) detached]
