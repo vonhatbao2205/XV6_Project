@@ -1,0 +1,3 @@
+# Báo cáo nộp riêng (Report.pdf), không đưa vào lab.zip của make zipball
+report export-ignore
+.gitattributes export-ignore
