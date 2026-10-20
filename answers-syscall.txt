@@ -1,0 +1,73 @@
+CS333 Lab 2 - Task 3.1 (Using gdb)
+Group 24120166 (Vo Nhat Bao) - 24120182 (Pham Le Huy Hoang)
+
+All values below come from real sessions of `make qemu-gdb` + gdb 17.2 on
+this branch (CPUS=3, gcc 15.2.0). Addresses depend on the build.
+Evidence (logs + screenshots): evidence/lab2/gdb-syscall.*, panic-asm.*,
+gdb-panic.* in the project folder, also included in the report.
+
+Q1. Looking at the backtrace output, which function called syscall?
+
+    usertrap() called syscall(), at kernel/trap.c:68:
+
+      #0  syscall () at kernel/syscall.c:138
+      #1  0x0000000080001b2a in usertrap () at kernel/trap.c:68
+      #2  0x0000003ffffff09c in ?? ()
+
+    Frame #2 is TRAMPOLINE + 0x9c (the label userret): uservec in the
+    trampoline page calls usertrap() with `jalr t0`, so the return address is
+    the instruction after it. gdb prints ?? because the kernel symbols of the
+    trampoline are at 0x80006000, not at its virtual address 0x3ffffff000.
+
+Q2. What is the value of p->trapframe->a7 and what does that value represent?
+
+    p->trapframe->a7 = 15. The user stub (user/usys.S) puts the system call
+    number in a7 before `ecall`, and 15 is SYS_open (kernel/syscall.h).
+
+    In xv6-labs-2026 there is no user/initcode.S: forkret() in kernel/proc.c
+    calls kexec("/init") directly for the first process. So the first system
+    call to reach syscall() is the first one made by /init (p->name = "init",
+    pid = 1): open("console", O_RDWR) in user/init.c.
+
+Q3. What was the previous mode that the CPU was in?
+
+    User mode. p /x $sstatus = 0x200000022:
+      - bit 8 (SPP)  = 0 -> the trap came from user mode (1 would be supervisor);
+      - bit 5 (SPIE) = 1 -> interrupts were enabled before the trap;
+      - bit 1 (SIE)  = 1 -> usertrap() called intr_on() just before syscall();
+      - bits 33:32 (UXL) = 2 -> user mode runs with 64-bit registers.
+
+Q4. Write down the assembly instruction the kernel is panicking at. Which
+    register corresponds to the variable num?
+
+    With `num = * (int *) 0;` the kernel prints
+      scause=0xd sepc=0x80001d7a stval=0x0
+      panic: kerneltrap
+    and kernel/kernel.asm at 0x80001d7a contains:
+      80001d7a:  00002683   lw  a3,0(zero) # 0 <_entry-0x80000000>
+    The instruction is `lw a3,0(zero)`: load 4 bytes from address zero + 0.
+    Register a3 holds num (the next instruction, `addiw a4,a3,-1`, uses a3
+    for the `num > 0 && num < NELEM(syscalls)` check).
+
+Q5. Why does the kernel crash?
+
+    The load reads virtual address 0, which is not mapped in the kernel page
+    table. kvmmake() (kernel/vm.c) only maps the devices (PLIC 0x0c000000,
+    UART0 0x10000000, VIRTIO0 0x10001000), KERNBASE 0x80000000..PHYSTOP, the
+    trampoline and the kernel stacks; Figure 3-3 of the xv6 book shows nothing
+    mapped at address 0. So the MMU raises an exception:
+      - scause = 0xd = 13 = "load page fault" (interrupt bit 0, exception 13);
+      - stval  = 0x0 = the virtual address that faulted;
+      - sepc   = 0x80001d7a = the `lw` instruction.
+    The trap enters kernelvec -> kerneltrap(). It is not a device interrupt,
+    and a page fault inside the kernel is never expected, so kerneltrap()
+    prints scause/sepc/stval and calls panic("kerneltrap").
+    gdb confirms it: at a breakpoint on kerneltrap with $scause == 0xd,
+    $scause = 0xd, $sepc = 0x80001d7a, $stval = 0x0, and `x/wx 0` reports
+    "Cannot access memory at address 0x0".
+
+Q6. What is the name of the process that was running when the kernel
+    panicked? What is its process id (pid)?
+
+    At the breakpoint on 0x80001d7a: p p->name = "init", p p->pid = 1.
+    The process is init (pid 1), making its first system call.
