@@ -1,7 +1,5 @@
 % Biên dịch: latexmk -xelatex Report.tex   (Overleaf: Compiler = XeLaTeX)
 % Ảnh chụp terminal và logo trường nằm trong images/.
-% BẢN NHÁP: các khối todobox và \tbd đánh dấu phần chưa hoàn thiện
-% (Task 3.3, Task 3.4, make grade đầy đủ, time.txt). Xóa hết trước khi nộp.
 \documentclass[10pt,a4paper]{article}
 \usepackage[left=2cm,right=1.8cm,top=2.1cm,bottom=1.9cm,headheight=14pt,headsep=12pt,footskip=22pt]{geometry}
 \usepackage{fontspec}
@@ -30,7 +28,7 @@
 \definecolor{rowalt}{HTML}{F4F6FA}
 \definecolor{cmt}{HTML}{3B7A57}
 \definecolor{str}{HTML}{9A3B26}
-\definecolor{todo}{HTML}{B42318}
+\definecolor{deny}{HTML}{B42318}
 \hypersetup{colorlinks=true,linkcolor=black,urlcolor=hcmus,
   pdftitle={Báo cáo Lab 2 – System Calls},
   pdfauthor={Võ Nhất Bảo, Phạm Lê Huy Hoàng}}
@@ -73,10 +71,6 @@
 \newcommand{\headrow}{\rowcolor{hcmus}}
 \newtcolorbox{pseudobox}{colback=codebg,colframe=hcmus,boxrule=0pt,leftrule=1.6pt,
   arc=0pt,outer arc=0pt,left=6pt,right=4pt,top=2pt,bottom=2pt}
-% Đánh dấu phần chưa hoàn thiện của bản nháp.
-\newtcolorbox{todobox}{colback=todo!5,colframe=todo,boxrule=0pt,leftrule=1.6pt,
-  arc=0pt,outer arc=0pt,left=6pt,right=4pt,top=3pt,bottom=3pt,fontupper=\small}
-\newcommand{\tbd}{\textcolor{todo}{\textit{chờ bổ sung}}}
 \fvset{fontsize=\small}
 
 \begin{document}
@@ -133,12 +127,12 @@
 
 \begin{table}[H]
 \centering\small
-\begin{tabularx}{\linewidth}{@{}c c >{\raggedright\arraybackslash}p{3.3cm} X c@{}}
+\begin{tabularx}{\linewidth}{@{}c c >{\raggedright\arraybackslash}p{3.3cm} >{\raggedright\arraybackslash}X c@{}}
 \headrow \thd{STT} & \thd{MSSV} & \thd{Họ và tên} & \thd{Công việc đảm nhận} & \thd{Đóng góp} \\
-1 & 24120166 & Võ Nhất Bảo & Task 3.1: chạy gdb với QEMU, trả lời sáu câu hỏi (\cc{answers-syscall.txt}), thu thập ảnh minh chứng. Task 3.2: system call \cc{interpose}, chặn system call theo mask, kế thừa mask qua \cc{fork}. Viết các phần báo cáo tương ứng. & 50\% \\
+1 & 24120166 & Võ Nhất Bảo & Task 3.1: chạy gdb với QEMU, trả lời sáu câu hỏi (\cc{answers-syscall.txt}), thu thập ảnh minh chứng. Task 3.2: system call \cc{interpose}, chặn system call theo mask, kế thừa mask qua \cc{fork}. Phân tích đường đi của trang nhớ cho Task 3.4. & 50\% \\
 \rowcolor{rowalt}
-2 & 24120182 & Phạm Lê Huy Hoàng & Task 3.3: cho phép \cc{open}/\cc{exec} theo pathname. Task 3.4: tấn công xv6 (\cc{user/attack.c}). Viết các phần báo cáo tương ứng. & 50\% \\
-\multicolumn{3}{@{}l}{\textbf{Công việc chung}} & Chạy autograder, rà soát chéo mã nguồn, \cc{time.txt}, hoàn thiện báo cáo, đóng gói bài nộp. & Cả hai \\
+2 & 24120182 & Phạm Lê Huy Hoàng & Task 3.3: cho phép \cc{open}/\cc{exec} theo pathname. Task 3.4: tấn công xv6 (\cc{user/attack.c}). Viết test bổ sung (\cc{user/sbaudit.c}, \cc{test-sandbox-audit.py}), kiểm chứng độc lập trên môi trường thứ hai. & 50\% \\
+\multicolumn{3}{@{}l}{\textbf{Công việc chung}} & Chạy autograder, rà soát chéo mã nguồn, \cc{time.txt}, viết báo cáo, đóng gói bài nộp. & Cả hai \\
 \bottomrule
 \end{tabularx}
 \caption{Phân công công việc và tỷ lệ đóng góp của các thành viên.}
@@ -150,16 +144,16 @@
 \headrow \thd{Task} & \thd{Nội dung} & \thd{Tệp chính} & \thd{Hoàn thành} & \thd{Autograder} \\
 3.1 & Using gdb & \cc{answers-syscall.txt} & 100\% & 5/5 \\
 \rowcolor{rowalt}
-3.2 & Sandbox theo mask & \cc{kernel/\{syscall,sysproc,proc\}.c}, \cc{kernel/proc.h} & 100\% & 20/20 \\
-3.3 & Sandbox theo pathname & \tbd & \tbd & \tbd{} /20 \\
+3.2 & Sandbox theo mask & \cc{kernel/\{syscall,sysproc,proc\}.c}, \cc{kernel/proc.h}, \cc{user/usys.pl}, \cc{user/user.h} & 100\% & 20/20 \\
+3.3 & Sandbox theo pathname & \cc{kernel/\{syscall,sysproc,proc\}.c}, \cc{kernel/proc.h} & 100\% & 20/20 \\
 \rowcolor{rowalt}
-3.4 & Attack xv6 & \cc{user/attack.c} & \tbd & \tbd{} /14 \\
--- & Số giờ thực hiện & \cc{time.txt} & \tbd & \tbd{} /1 \\
+3.4 & Attack xv6 & \cc{user/attack.c} & 100\% & 14/14 \\
+-- & Số giờ thực hiện & \cc{time.txt} & 100\% & 1/1 \\
 \midrule
-\multicolumn{4}{@{}l}{\textbf{Tổng kết quả \cc{make grade}}} & \tbd{} /60 \\
+\multicolumn{4}{@{}l}{\textbf{Tổng kết quả \cc{make grade}}} & \textbf{60/60} \\
 \bottomrule
 \end{tabularx}
-\caption{Mức độ hoàn thành các yêu cầu của Lab 2. Các test thuộc từng task được liệt kê ở Bảng~\ref{tab:grade}.}
+\caption{Mức độ hoàn thành các yêu cầu của Lab 2. Các test thuộc từng task được liệt kê ở mục~\ref{sec:test}.}
 \end{table}
 
 % =================================================================== 2
@@ -167,11 +161,11 @@
 
 Lab 2 đi vào bên trong kernel xv6: dùng GDB để theo dõi một system call và lần ra nguyên nhân của một kernel panic (Task 3.1), thêm system call mới \cc{interpose} để “sandbox” một process (Task 3.2, 3.3), và khai thác một lỗi rò rỉ bộ nhớ được cố ý đưa vào kernel (Task 3.4).
 
-\textbf{Môi trường.} Giống Lab 1: NixOS 26.05 (x86-64), công cụ khai báo trong \cc{shell.nix} gồm \cc{riscv64-none-elf-gcc} 15.2.0, GNU Binutils 2.46, QEMU 10.2.4 (3 CPU), GDB 17.2, GNU Make 4.4.1 và Python 3.13 (autograder). Mã nguồn: \cc{git://g.csail.mit.edu/xv6-labs-2026}, nhánh \cc{syscall}, commit gốc \cc{99161db}; \cc{conf/lab.mk} đặt \cc{LAB=syscall}.
+\textbf{Môi trường.} Giống Lab 1: NixOS 26.05 (x86-64), công cụ khai báo trong \cc{shell.nix} gồm \cc{riscv64-none-elf-gcc} 15.2.0, GNU Binutils 2.46, QEMU 10.2.4 (3 CPU), GDB 17.2, GNU Make 4.4.1 và Python 3.13 (autograder). Mã nguồn: \cc{git://g.csail.mit.edu/xv6-labs-2026}, nhánh \cc{syscall}, commit gốc \cc{99161db}; \cc{conf/lab.mk} đặt \cc{LAB=syscall}. Bài làm cũng được kiểm chứng độc lập trên WSL Ubuntu 24.04 (GCC RISC-V 13.3.0, QEMU 8.2.2, GDB 15.1); cả hai môi trường đều đạt 60/60.
 
-\textbf{Quy trình.} Nhánh \cc{syscall} được tạo từ \cc{origin/syscall} (\cc{git checkout -b syscall --track origin/syscall}). Mỗi task được build và chạy thử bằng \cc{make qemu}, chấm riêng bằng \cc{./grade-lab-syscall <tên test>} rồi commit; hai tệp chấm điểm \cc{grade-lab-syscall} và \cc{gradelib.py} được giữ nguyên.
+\textbf{Quy trình.} Nhánh \cc{syscall} được tạo từ \cc{origin/syscall} và đẩy lên GitHub để hai thành viên làm tiếp trên cùng nhánh. Mỗi task được build và chạy thử bằng \cc{make qemu}, chấm riêng bằng \cc{./grade-lab-syscall <tên test>} rồi commit; hai tệp chấm điểm \cc{grade-lab-syscall} và \cc{gradelib.py} được giữ nguyên.
 
-\textbf{Lỗi cố ý của lab.} Makefile biên dịch kernel với \cc{-DLAB\_SYSCALL}. Khi macro này được định nghĩa, \cc{uvmalloc()} bỏ lệnh \cc{memset(mem, 0, sz)} (\cc{kernel/vm.c}, dòng 268–270), còn \cc{kfree()}/\cc{kalloc()} bỏ việc ghi rác lên trang (\cc{kernel/kalloc.c}, dòng 57–60 và 85–88). Hệ quả: trang nhớ cấp cho process mới vẫn giữ nội dung của process trước. Đây là cơ sở của Task 3.4, và cũng ảnh hưởng tới kiểm thử thủ công của Task 3.2 (mục~\ref{sec:discussion}).
+\textbf{Lỗi cố ý của lab.} Makefile biên dịch kernel với \cc{-DLAB\_SYSCALL}. Khi macro này được định nghĩa, \cc{uvmalloc()} bỏ lệnh \cc{memset(mem, 0, sz)} (\cc{kernel/vm.c}, dòng 268–270), còn \cc{kfree()}/\cc{kalloc()} bỏ việc ghi rác lên trang (\cc{kernel/kalloc.c}, dòng 57–60 và 85–88). Hệ quả: trang nhớ cấp cho process mới vẫn giữ nội dung của process trước. Đây là cơ sở của Task 3.4, và cũng ảnh hưởng tới kiểm thử thủ công (mục~\ref{sec:discussion}).
 
 % =================================================================== 3
 \section{Task 3.1 – Using gdb}
@@ -210,7 +204,7 @@ Gợi ý của đề (xem \cc{user/initcode.S}, nơi giá trị là \cc{SYS\_exe
   \fld{21.2}{22.2}{0}{0}{white}
   \node[anchor=west,align=left,font=\scriptsize] at (23,0.3)
     {\cc{SPP = 0}: trap đến từ user mode\\
-     \cc{SPIE = 1}: trước trap, ngắt đang bật\\
+     \cc{SPIE = 1}: trước trap, bit \cc{SIE} đang bật\\
      \cc{SIE = 1}: \cc{usertrap()} gọi \cc{intr\_on()} trước \cc{syscall()}\\
      \cc{UXL = 2}: user mode dùng thanh ghi 64 bit};
 \end{tikzpicture}
@@ -276,35 +270,33 @@ Cùng địa chỉ 0 lại \emph{hợp lệ} trong user page table, vì mã củ
 
 \textbf{Yêu cầu.} Thêm system call \cc{int interpose(int mask, const char *path)}. Nếu bit \cc{n} của \cc{mask} được bật thì system call số \cc{n} của process gọi \emph{không được thực thi} và trả về $-1$. Process con tạo bằng \cc{fork} thừa hưởng hạn chế của cha. Ở task này \cc{path} luôn là \cc{"-"} (được dùng ở Task 3.3).
 
-\subsection{Các tệp đã sửa và trường mới trong \cc{struct proc}}
+\subsection{Các tệp đã sửa và trường mới trong \cc{struct proc} (Task 3.2–3.3)}
 \begin{table}[H]
 \centering\small
 \begin{tabularx}{\linewidth}{@{}l X@{}}
 \headrow \thd{Tệp} & \thd{Thay đổi} \\
-\cc{Makefile} & Thêm \cc{\$U/\_sandbox}, \cc{\$U/\_sbtest} vào \cc{UPROGS} (khối \cc{ifeq (\$(LAB),syscall)}). \\
+\cc{Makefile} & Thêm \cc{\$U/\_sandbox}, \cc{\$U/\_sbtest} vào \cc{UPROGS}; \cc{\$U/\_sbaudit} (test bổ sung) chỉ được thêm khi build với \cc{SANDBOX\_AUDIT=1}. \\
 \rowcolor{rowalt}
-\cc{kernel/syscall.h} & \cc{\#define SYS\_interpose 23}. \\
-\cc{user/usys.pl}, \cc{user/user.h} & \cc{entry("interpose")} sinh stub trong \cc{user/usys.S}; khai báo \cc{int interpose(int, const char *)}. \\
+\cc{kernel/syscall.h}, \cc{user/usys.pl}, \cc{user/user.h} & \cc{\#define SYS\_interpose 23}; \cc{entry("interpose")} sinh stub trong \cc{user/usys.S}; khai báo \cc{int interpose(int, const char *)}. \\
+\cc{kernel/syscall.c} & Thêm \cc{[SYS\_interpose]} vào bảng \cc{syscalls[]}; hàm \cc{sandbox\_rejects()} kiểm tra mask (3.2) và pathname của \cc{open}/\cc{exec} (3.3), được gọi một lần trong \cc{syscall()}. \\
 \rowcolor{rowalt}
-\cc{kernel/syscall.c} & Khai báo \cc{sys\_interpose}, thêm \cc{[SYS\_interpose]} vào bảng \cc{syscalls[]}; hàm \cc{sandbox\_rejects()} và phép kiểm tra trong \cc{syscall()}. \\
-\cc{kernel/sysproc.c} & Hàm xử lý \cc{sys\_interpose()}. \\
-\rowcolor{rowalt}
-\cc{kernel/proc.h}, \cc{kernel/proc.c} & Trường \cc{sbmask}; \cc{kfork()} sao chép cho con; \cc{freeproc()} đặt lại 0. \\
+\cc{kernel/sysproc.c} & \cc{sys\_interpose()}: OR mask mới vào mask cũ (3.2); đọc và kiểm tra pathname, không cho nới ngoại lệ đã có (3.3). \\
+\cc{kernel/proc.h}, \cc{kernel/proc.c} & Hai trường ở Bảng~\ref{tab:fields}; \cc{kfork()} sao chép cho con; \cc{freeproc()} xóa khi thu hồi slot. \\
 \bottomrule
 \end{tabularx}
-\caption{Các tệp được sửa trong Task 3.2.}
+\caption{Các tệp được sửa trong Task 3.2 và 3.3.}
 \end{table}
 
 \begin{table}[H]
 \centering\small
 \begin{tabularx}{\linewidth}{@{}l l X X@{}}
 \headrow \thd{Trường} & \thd{Kiểu} & \thd{Ý nghĩa} & \thd{Vòng đời} \\
-\cc{sbmask} & \cc{int} & Bit \cc{n} = 1 thì system call số \cc{n} bị từ chối. & Ghi bởi \cc{sys\_interpose()} (chỉ OR thêm bit); \cc{kfork()} sao chép; \cc{kexec()} giữ nguyên; \cc{freeproc()} đặt 0. \\
+\cc{sbmask} & \cc{uint} & Bit \cc{n} = 1 thì system call số \cc{n} bị từ chối. Kiểu không dấu để bit 31 cũng được xử lý đúng. & Chỉ được OR thêm bit trong \cc{sys\_interpose()}; \cc{kfork()} sao chép; \cc{kexec()} giữ nguyên; \cc{freeproc()} đặt 0. \\
 \rowcolor{rowalt}
-\tbd & & Pathname được phép (Task 3.3). & \\
+\cc{sbpath} & \cc{char[MAXPATH]} & Pathname duy nhất mà \cc{open}/\cc{exec} bị mask vẫn được dùng; \cc{"-"} nghĩa là không có ngoại lệ (3.3). & Ghi trong \cc{sys\_interpose()} khi pathname hợp lệ và không nới quyền; \cc{kfork()} sao chép; \cc{kexec()} giữ nguyên; \cc{freeproc()} xóa. \\
 \bottomrule
 \end{tabularx}
-\caption{Các trường mới trong \cc{struct proc} (\cc{kernel/proc.h}).}
+\caption{Các trường mới trong \cc{struct proc} (\cc{kernel/proc.h}).}\label{tab:fields}
 \end{table}
 
 \subsection{Đường đi của lời gọi \cc{interpose} và của một system call bị chặn}
@@ -314,7 +306,7 @@ Hình~\ref{fig:interpose} theo dõi lệnh \cc{sandbox 32768 - cat README}. \cc{
 \centering
 \begin{tikzpicture}[font=\scriptsize,
   box/.style={draw=hcmus,fill=white,rounded corners=2pt,align=center,inner sep=2.5pt,text width=2.55cm,minimum height=1.3cm},
-  bad/.style={box,fill=todo!7,draw=todo},
+  bad/.style={box,fill=deny!7,draw=deny},
   arr/.style={-{Stealth[length=2mm]},semithick,hcmus},
   lbl/.style={font=\scriptsize\itshape,text=hcmus,fill=white,inner sep=1pt}]
   \fill[hcmus!5] (-0.55,0.9) rectangle (16.5,-0.9);
@@ -333,7 +325,7 @@ Hình~\ref{fig:interpose} theo dõi lệnh \cc{sandbox 32768 - cat README}. \cc{
   \draw[arr] ($(u2.south)+(0.45,0)$) -- node[lbl]{ecall} ($(k2.north)+(-0.45,0)$);
   \draw[arr] ($(k2.north)+(0.45,0)$) -- node[lbl]{sret} ($(u3.south)+(-0.45,0)$);
   \draw[arr] ($(u3.south)+(0.45,0)$) -- node[lbl]{ecall} ($(k3.north)+(-0.45,0)$);
-  \draw[arr,todo] ($(k3.north)+(0.45,0)$) -- node[lbl,text=todo]{sret, \cc{a0}=$-1$} ($(u4.south)+(-0.45,0)$);
+  \draw[arr,deny] ($(k3.north)+(0.45,0)$) -- node[lbl,text=deny]{sret, \cc{a0}=$-1$} ($(u4.south)+(-0.45,0)$);
   \node[font=\scriptsize,text=hcmus,align=center] at (8,-3.95)
     {Mỗi lần \cc{ecall}: \cc{uservec} lưu thanh ghi user vào trapframe $\rightarrow$ \cc{usertrap()} (\cc{scause = 8}, \cc{epc += 4}) $\rightarrow$ \cc{syscall()} $\rightarrow$ kết quả vào \cc{trapframe->a0} $\rightarrow$ \cc{userret}, \cc{sret}};
 \end{tikzpicture}
@@ -342,24 +334,17 @@ Hình~\ref{fig:interpose} theo dõi lệnh \cc{sandbox 32768 - cat README}. \cc{
 
 \subsection{Thiết kế và cài đặt}
 \begin{itemize}
-  \item \textbf{Kiểm tra một lần, trước khi gọi handler.} Phép kiểm tra nằm trong \cc{syscall()}, sau khi \cc{num} đã được xác nhận nằm trong bảng ($1 \le \cc{num} \le 23$, nên phép dịch \cc{sbmask >> num} luôn hợp lệ với \cc{int} 32 bit). System call bị chặn không chạy handler nên không có tác dụng phụ: \cc{fork} bị chặn không tạo process con. Cách này không phải sửa từng handler, và chặn được cả system call không có đối số như \cc{getpid}, \cc{fork} (test \cc{sandbox\_block}).
+  \item \textbf{Kiểm tra một lần, trước khi gọi handler.} \cc{syscall()} gọi \cc{sandbox\_rejects()} sau khi \cc{num} đã được xác nhận nằm trong bảng ($1 \le \cc{num} \le 23$, nên phép dịch \cc{1U << num} luôn hợp lệ). System call bị chặn không chạy handler nên không có tác dụng phụ: \cc{fork} bị chặn không tạo process con. Cách này không phải sửa từng handler, và chặn được cả system call không có đối số như \cc{getpid}, \cc{fork} (test \cc{sandbox\_block}).
   \item \textbf{Hạn chế chỉ được cộng dồn.} \cc{sys\_interpose()} dùng \cc{|=} chứ không gán. Test \cc{sandbox\_escape} chạy \cc{sbtest escape} dưới mask \cc{open}; chương trình gọi \cc{interpose(0, 0)} và \cc{interpose(0, "README")} để thử thoát. Nếu dùng phép gán, mask 0 xóa luôn bit 15 và process tự thoát sandbox.
-  \item \textbf{Kế thừa qua \cc{fork}, giữ qua \cc{exec}.} \cc{kfork()} sao chép \cc{sbmask} cho process con. \cc{kexec()} thay ảnh bộ nhớ nhưng giữ \cc{struct proc}, nên mask đặt trước \cc{exec} vẫn còn hiệu lực. Nhờ vậy \cc{sandbox 32768 - sh < exec.sh} chặn được cả \cc{ls} do \cc{sh} fork ra (test \cc{sandbox\_fork}).
-  \item \textbf{Khởi tạo đúng cho process mới.} \cc{freeproc()} đặt \cc{sbmask = 0} cùng chỗ với \cc{pid}, \cc{killed}, \cc{xstate}. \cc{allocproc()} chỉ cấp slot \cc{UNUSED}, tức slot đã qua \cc{freeproc()} hoặc mảng \cc{proc[]} tĩnh vốn bằng 0, nên process không tạo bằng fork không thể nhận mask cũ.
-  \item \textbf{Đồng bộ.} \cc{sbmask} chỉ được process tự đọc/ghi (trong \cc{syscall()}, \cc{sys\_interpose()}), được \cc{kfork()} ghi trước khi process con thành \cc{RUNNABLE}, và được \cc{freeproc()} ghi khi process đã kết thúc. Vì vậy trường này thuộc nhóm “private to the process” như \cc{sz}, \cc{pagetable}, không cần giữ \cc{p->lock}.
+  \item \textbf{Kế thừa qua \cc{fork}, giữ qua \cc{exec}.} \cc{kfork()} sao chép mask cho process con. \cc{kexec()} thay ảnh bộ nhớ nhưng giữ \cc{struct proc}, nên mask đặt trước \cc{exec} vẫn còn hiệu lực. Nhờ vậy \cc{sandbox 32768 - sh < exec.sh} chặn được cả \cc{ls} do \cc{sh} fork ra (test \cc{sandbox\_fork}).
+  \item \textbf{Khởi tạo đúng cho process mới.} \cc{freeproc()} xóa mask cùng chỗ với \cc{pid}, \cc{killed}, \cc{xstate}. \cc{allocproc()} chỉ cấp slot \cc{UNUSED}, tức slot đã qua \cc{freeproc()} hoặc mảng \cc{proc[]} tĩnh vốn bằng 0, nên process không tạo bằng fork không thể nhận mask cũ.
+  \item \textbf{Đồng bộ.} Hai trường chỉ được process tự đọc/ghi, được \cc{kfork()} ghi trước khi process con thành \cc{RUNNABLE}, và được \cc{freeproc()} ghi khi process đã kết thúc. Vì vậy chúng thuộc nhóm “private to the process” như \cc{sz}, \cc{pagetable}, không cần giữ \cc{p->lock}.
 \end{itemize}
 
+\begin{minipage}[t]{0.56\linewidth}
+\vspace{0pt}
 \srcname{kernel/syscall.c – kiểm tra sandbox tại dispatcher}
-\begin{lstlisting}[firstnumber=138]
-// Does the sandbox set up by interpose() reject system call num for p?
-static int
-sandbox_rejects(struct proc *p, int num)
-{
-  return (p->sbmask >> num) & 1;
-}
-\end{lstlisting}
-\vspace{-2pt}
-\begin{lstlisting}[firstnumber=151]
+\begin{lstlisting}[firstnumber=160,basicstyle=\ttfamily\scriptsize,xleftmargin=20pt]
   num = p->trapframe->a7;
   if (num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     if (sandbox_rejects(p, num)) {
@@ -371,34 +356,21 @@ sandbox_rejects(struct proc *p, int num)
       p->trapframe->a0 = syscalls[num]();
     }
 \end{lstlisting}
-
-\begin{minipage}[t]{0.5\linewidth}
-\vspace{0pt}
-\srcname{kernel/sysproc.c – sys\_interpose}
-\begin{lstlisting}[firstnumber=117,xleftmargin=22pt]
-uint64
-sys_interpose(void)
-{
-  int mask;
-
-  argint(0, &mask);
-  myproc()->sbmask |= mask;
-  return 0;
-}
-\end{lstlisting}
 \end{minipage}\hfill
-\begin{minipage}[t]{0.47\linewidth}
+\begin{minipage}[t]{0.41\linewidth}
 \vspace{0pt}
-\srcname{kernel/proc.c – kfork() và freeproc()}
-\begin{lstlisting}[firstnumber=293,xleftmargin=22pt]
-  // the child stays in the parent's sandbox.
-  np->sbmask = p->sbmask;
+\srcname{kernel/proc.c – freeproc() và kfork()}
+\begin{lstlisting}[firstnumber=170,basicstyle=\ttfamily\scriptsize,xleftmargin=20pt]
+  p->sbmask = 0;
+  p->sbpath[0] = 0;
 \end{lstlisting}
 \vspace{-2pt}
-\begin{lstlisting}[firstnumber=170,xleftmargin=22pt]
-  p->sbmask = 0;
+\begin{lstlisting}[firstnumber=294,basicstyle=\ttfamily\scriptsize,xleftmargin=20pt]
+  // the child stays in the parent's sandbox.
+  np->sbmask = p->sbmask;
+  safestrcpy(np->sbpath, p->sbpath, sizeof(np->sbpath));
 \end{lstlisting}
-\small \cc{argint(0, \&mask)} đọc đối số thứ nhất từ \cc{trapframe->a0}; mask mới được OR vào mask cũ. Đối số \cc{path} (\cc{a1}) chưa được đọc ở task này.
+\small Bản cuối của \cc{sandbox\_rejects()} và \cc{sys\_interpose()} (đã gồm phần pathname của Task 3.3) được trình bày ở mục~\ref{sec:path}.
 \end{minipage}
 
 \subsection{Chạy thử}
@@ -426,51 +398,192 @@ sys_interpose(void)
 \end{minipage}
 
 % =================================================================== 5
-\section{Task 3.3 – Sandbox with allowed pathnames}
+\section{Task 3.3 – Sandbox with allowed pathnames}\label{sec:path}
 
-\begin{todobox}
-\textbf{CHỜ BỔ SUNG (Phạm Lê Huy Hoàng).} Theo mục 5.2 của đề: trường pathname mới trong \cc{struct proc} (bổ sung vào bảng trường ở mục 4.1), cách lấy \cc{path} bằng \cc{argstr} vào buffer \cc{MAXPATH}, xử lý \cc{"-"}, phép so sánh pathname của \cc{open}/\cc{exec} (gợi ý: mở rộng \cc{sandbox\_rejects()}), kế thừa qua \cc{fork}, danh sách tệp đã sửa và đường đi của một lời gọi \cc{open}/\cc{exec} được phép. Lưu ý \cc{sbtest escape} gọi lại \cc{interpose(0, "README")}, và địa chỉ 0 hợp lệ trong user space nên \cc{interpose(0, 0)} không làm \cc{argstr} thất bại.
-\end{todobox}
+\textbf{Yêu cầu.} Mở rộng \cc{interpose(mask, path)}: một lời gọi \cc{open} hoặc \cc{exec} đã bị mask vẫn được phép nếu pathname của nó \emph{bằng đúng} \cc{path}. Mọi system call bị mask khác, và \cc{open}/\cc{exec} với pathname khác, vẫn bị chặn như Task 3.2. \cc{path = "-"} nghĩa là không cho phép pathname nào.
+
+\begin{itemize}
+  \item \textbf{Lưu pathname an toàn.} \cc{sys\_interpose()} đọc \cc{path} bằng \cc{argstr(1, path, MAXPATH)} vào buffer cục bộ \emph{trước} khi đổi trạng thái. Con trỏ sai, chuỗi không có NUL hoặc dài từ \cc{MAXPATH} = 128 byte trở lên đều trả $-1$, mask và \cc{sbpath} giữ nguyên. Kernel giữ bản sao riêng, nên user sửa buffer của mình sau đó không ảnh hưởng tới chính sách.
+  \item \textbf{Kiểm tra tại dispatcher.} \cc{sandbox\_rejects()} cho chạy mọi call không bị mask. Với call bị mask, chỉ \cc{open}/\cc{exec} có ngoại lệ: \cc{sbpath} khác \cc{"-"}, đối số 0 đọc được bằng \cc{argstr}, và trùng \emph{chính xác} \cc{sbpath}. So sánh chuỗi không chuẩn hóa đường dẫn: \cc{README} khác \cc{./README}; \cc{---} là tên tệp thường, chỉ đúng chuỗi \cc{"-"} mới mang nghĩa “không có ngoại lệ” (test \cc{sandbox\_minus}).
+  \item \textbf{Không nới quyền.} Khi \cc{open} hoặc \cc{exec} đã bị mask, lời gọi mới chỉ được chấp nhận nếu \cc{path} giống \cc{sbpath} hiện tại hoặc là \cc{"-"} (bỏ ngoại lệ). Đây là lý do \cc{sbtest escape} vẫn bị giam: \cc{interpose(0, "README")} bị từ chối. Riêng \cc{interpose(0, 0)} \emph{không} làm \cc{argstr} thất bại, vì địa chỉ 0 hợp lệ trong user space (mã chương trình); chuỗi đọc được khác \cc{"-"} và \cc{sbpath}, nên lời gọi vẫn trả $-1$.
+  \item \textbf{Kế thừa.} \cc{kfork()} sao chép \cc{sbpath}, \cc{kexec()} giữ nguyên, \cc{freeproc()} xóa (mục 4.3). Test \cc{sandbox\_forkpath}: process con của \cc{sbtest} vẫn mở được \cc{README} nhưng không mở được \cc{exec.sh}.
+  \item \textbf{Đọc pathname hai lần.} \cc{sandbox\_rejects()} và handler (\cc{sys\_open}, \cc{sys\_exec}) mỗi bên đọc pathname một lần. Giữa hai lần đọc không có mã user nào chạy, và process xv6 không chia sẻ bộ nhớ, nên chuỗi không thể bị đổi ở giữa.
+\end{itemize}
+
+\begin{minipage}[t]{0.43\linewidth}
+\vspace{0pt}
+\srcname{kernel/syscall.c – sandbox\_rejects()}
+\begin{lstlisting}[firstnumber=139,basicstyle=\ttfamily\scriptsize,xleftmargin=20pt]
+static int
+sandbox_rejects(struct proc *p, int num)
+{
+  char path[MAXPATH];
+
+  if ((p->sbmask & (1U << num)) == 0)
+    return 0;
+  if ((num == SYS_open || num == SYS_exec) &&
+      strncmp(p->sbpath, "-", MAXPATH) != 0 &&
+      argstr(0, path, sizeof(path)) >= 0 &&
+      strncmp(path, p->sbpath, MAXPATH) == 0)
+    return 0;
+  return 1;
+}
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.55\linewidth}
+\vspace{0pt}
+\srcname{kernel/sysproc.c – sys\_interpose()}
+\begin{lstlisting}[firstnumber=117,basicstyle=\ttfamily\scriptsize,xleftmargin=20pt]
+uint64
+sys_interpose(void)
+{
+  int mask;
+  char path[MAXPATH];
+  struct proc *p = myproc();
+
+  argint(0, &mask);
+  if (argstr(1, path, sizeof(path)) < 0)
+    return -1;
+  if ((p->sbmask & ((1U << SYS_open) | (1U << SYS_exec))) &&
+      strncmp(path, p->sbpath, MAXPATH) != 0 &&
+      strncmp(path, "-", MAXPATH) != 0)
+    return -1;
+  p->sbmask |= (uint)mask;
+  safestrcpy(p->sbpath, path, sizeof(p->sbpath));
+  return 0;
+}
+\end{lstlisting}
+\end{minipage}
+
+\begin{minipage}[c]{0.42\linewidth}
+\centering
+\includegraphics[width=\linewidth,trim=0 515 426 229,clip]{sandbox-path.png}
+\captionof{figure}{Sandbox theo pathname trong xv6.}\label{fig:path}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.55\linewidth}
+\small
+\begin{itemize}
+  \item \cc{sandbox 128 sh sh < exec.sh}: \cc{exec("sh")} được phép vì trùng \cc{"sh"}; trong script, \cc{exec} của \cc{echo} và \cc{ls} bị chặn.
+  \item \cc{sandbox 32768 README grep xv6 README}: \cc{grep} mở được \cc{README}, in các dòng chứa \cc{xv6}; với tệp \cc{x} (bản sao của \cc{README}) thì báo \cc{cannot open x}.
+  \item \cc{sandbox 32768 --- grep hello! ---}: \cc{---} là pathname được phép, không phải ký hiệu \cc{"-"}.
+  \item \cc{sbtest forkpath}: process con thừa hưởng ngoại lệ \cc{README}; \cc{sbtest escape}: vẫn bị giam.
+  \item Test \cc{sandbox\_most} dùng mask $2147483643$ = mọi bit 0–30 trừ bit 2 (\cc{exit}) với ngoại lệ \cc{grep}: chỉ \cc{exec grep} và \cc{exit} chạy được, nên không có dòng \cc{exec ... failed} nào.
+\end{itemize}
+\end{minipage}
 
 % =================================================================== 6
 \section{Task 3.4 – Attack xv6}
 
-\begin{todobox}
-\textbf{CHỜ BỔ SUNG (Phạm Lê Huy Hoàng).} Giải thích vì sao tấn công thành công: trang vật lý nào của \cc{secret} được \cc{kalloc()} cấp lại cho \cc{attack}, secret nằm ở offset nào và cách xác định offset đó (đề trừ điểm nếu chỉ thử sai mà không giải thích).
-\end{todobox}
+\textbf{Yêu cầu.} \cc{user/secret.c} ghi một chuỗi bí mật vào bộ nhớ rồi thoát. Chỉ sửa \cc{user/attack.c} sao cho nó tìm và in ra chuỗi đó trên một dòng; \cc{secret.c} và kernel giữ nguyên.
 
-% =================================================================== 7
-\needspace{16\baselineskip} % giữ tiêu đề cùng trang với bảng test
-\section{Kiểm thử}
+\subsection{Secret nằm ở đâu}
+\cc{secret} gọi \cc{sbrk(9 * 4096)} (cấp phát ngay, không lazy). Sau \cc{exec}, \cc{sz} đã căn theo trang, nên vùng mới bắt đầu đúng đầu một trang và \cc{align = 0}. Chương trình cộng thêm \cc{32 + (unsigned char)secret[0]}, rồi ghi chuỗi đánh dấu \cc{"Here it is: "} (12 byte), tiếp theo là secret và byte NUL. Vậy trong \textbf{trang đầu} của vùng \cc{sbrk}, chuỗi đánh dấu nằm ở offset $32 + c$ và secret ở offset $44 + c$, với $c \in [0, 255]$ là mã của ký tự đầu. Ví dụ \cc{xyzzy}: \cc{'x'} = 120, chuỗi đánh dấu ở offset 152, secret ở 164. \cc{secret} thoát mà không xóa gì, và do lỗi cố ý \cc{LAB\_SYSCALL}, nội dung này còn nguyên khi trang được cấp lại.
+
+\subsection{Trang nào được tái sử dụng}
+\cc{kfree()} đẩy trang vào \emph{đầu} free list, \cc{kalloc()} lấy từ đầu: free list hoạt động như một ngăn xếp (LIFO). Để biết chính xác trang chứa secret đi đâu, nhóm gắn tạm lệnh in vào \cc{kalloc()}/\cc{kfree()} (chỉ để phân tích, đã khôi phục bằng \cc{git checkout}). Lệnh in ghi lại mọi lần cấp/giải phóng kèm hàm gọi, rồi chạy \cc{secret xyzzy; attack} (Bảng~\ref{tab:journey}).
 
 \begin{table}[H]
 \centering\small
-\begin{tabularx}{\linewidth}{@{}c >{\raggedright\arraybackslash}p{5.8cm} X r@{}}
-\headrow \thd{Task} & \thd{Test của autograder} & \thd{Nội dung} & \thd{Kết quả} \\
-3.1 & \cc{answers-syscall.txt} & Tệp trả lời tồn tại, đủ nội dung (chấm tay) & OK 5/5 \\
+\begin{tabularx}{\linewidth}{@{}c >{\raggedright\arraybackslash}X c@{}}
+\headrow \thd{Bước} & \thd{Sự kiện (trang vật lý \cc{0x87f25000} chứa secret)} & \thd{Số trang nằm trên trang secret} \\
+1 & \cc{sh} gọi \cc{wait()} thu hồi \cc{secret}: \cc{uvmunmap} giải phóng trang user theo địa chỉ ảo tăng dần (trang secret, rồi 8 trang \cc{sbrk} còn lại), sau đó \cc{freewalk} giải phóng 5 trang page table. & 13 \\
 \rowcolor{rowalt}
-3.2 & \cc{sandbox\_mask} & Mask \cc{open}, \cc{exec}, cả hai; \cc{exec} bị chặn & OK 5/5 \\
-3.2 & \cc{sandbox\_fork} & Mask được \cc{sh} và các process con thừa hưởng & OK 5/5 \\
+2 & \cc{fork} của \cc{sh} lấy 11 trang: trapframe, page table và bản sao 5 trang của \cc{sh}. & 2 \\
+3 & Process con (vẫn là \cc{sh}) gọi \cc{malloc} để phân tích lệnh; \cc{umalloc} xin tối thiểu $4096 \times 16$ byte = 16 trang qua \cc{sbrk}. Trang secret trở thành trang heap thứ 3 nhưng không bị ghi đè: \cc{malloc} chỉ ghi header ở đầu heap và cấp khối từ cuối heap. & -- \\
 \rowcolor{rowalt}
-3.2 & \cc{sandbox\_block} & \cc{getpid}, \cc{fork} bị chặn trả $-1$, không chạy handler & OK 5/5 \\
-3.2 & \cc{sandbox\_escape} & Gọi lại \cc{interpose} không gỡ được hạn chế & OK 5/5 \\
-\rowcolor{rowalt}
-3.3 & \cc{sandbox\_\{path,most,minus,forkpath\}} & Pathname được phép cho \cc{open}/\cc{exec} & \tbd \\
-3.4 & \cc{attack} & In ra secret của lần chạy \cc{secret} trước & \tbd \\
-\rowcolor{rowalt}
--- & \cc{time} & \cc{time.txt} chứa một số nguyên & \tbd \\
+4 & \cc{exec("attack")} lấy 10 trang (ảnh mới và một trang chứa \cc{argv}), rồi giải phóng ảnh \cc{sh} cũ theo địa chỉ tăng dần: trang secret, 13 trang heap sau nó, 5 trang page table, và trang chứa \cc{argv}. & 19 \\
+5 & \cc{sbrk(32 * PGSIZE)} của \cc{attack} nhận 19 trang đó trước; trang secret là trang thứ 20, tức \textbf{index 19} của vùng \cc{sbrk}. & 0 \\
 \bottomrule
 \end{tabularx}
-\caption{Các test của \cc{grade-lab-syscall}. Kết quả hiện tại của Task 3.1, 3.2 lấy từ \cc{./grade-lab-syscall} trên nhánh \cc{syscall}.}\label{tab:grade}
+\caption{Hành trình của trang chứa secret, đo bằng instrumentation tạm trong \cc{kalloc.c}.}\label{tab:journey}
 \end{table}
 
-Mã của Task 3.2 biên dịch với \cc{-Wall -Werror} không có cảnh báo; cảnh báo \cc{RWX} của linker thuộc kernel gốc. Ngoài autograder, ảnh chạy thử ở Hình~\ref{fig:sandbox} kiểm tra thêm hai điều autograder không đo: system call không bị mask vẫn hoạt động trong sandbox, và process mới không nhận mask cũ.
+Ở lần chạy \cc{attack} thứ hai (autograder chạy hai lần), trang này nằm ở index 15, vì lần \cc{attack} đầu đã dùng rồi trả lại nó. Index phụ thuộc số trang mà \cc{fork}, \cc{malloc} và \cc{exec} của \cc{sh} lấy và trả lại. Con số này cố định với mã nguồn và toolchain này, nhưng không nên mã hóa cứng. Vì vậy \cc{attack} quét một nhóm 32 trang, dư khoảng 12 trang so với vị trí đo được.
 
-\begin{todobox}
-\textbf{CHỜ BỔ SUNG.} Ảnh chụp toàn bộ output \cc{make grade} sau khi hoàn thành cả bốn task (đề yêu cầu trong bảng tự đánh giá).
-\end{todobox}
+\subsection{Thuật toán}
+\begin{minipage}[t]{0.69\linewidth}
+\vspace{0pt}
+\srcname{user/attack.c – quét các trang vừa nhận lại}
+\begin{lstlisting}[firstnumber=21,basicstyle=\ttfamily\scriptsize,xleftmargin=20pt]
+  for (int page = 0; page < NPAGES; page++) {
+    // secret places its marker at 32 + the first unsigned secret byte.
+    for (int off = 32; off < 32 + 256; off++) {
+      char *p = mem + page * PGSIZE + off;
+      if (memcmp(p, marker, mlen) != 0)
+        continue;
+      char *secret = p + mlen;
+      int n = 0;
+      int limit = PGSIZE - off - mlen;
+      while (n < limit && ((secret[n] >= '0' && secret[n] <= '9') ||
+                           (secret[n] >= 'A' && secret[n] <= 'Z') ||
+                           (secret[n] >= 'a' && secret[n] <= 'z')))
+        n++;
+      if (n > 0 && n < limit && secret[n] == 0 &&
+          off == 32 + (uchar)secret[0]) {
+        write(1, secret, n);
+        write(1, "\n", 1);
+        exit(0);
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.29\linewidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=0.62\linewidth,trim=0 895 901 192,clip]{attack.png}
+\captionof{figure}{\cc{attack} in đúng secret ở cả hai lần chạy.}\label{fig:attack}
+\vspace{2pt}
+\raggedright\small
+\cc{attack} xin 32 trang bằng \cc{sbrk} (cấp ngay, nên các trang lấy thẳng từ free list và không bị xóa). Với mỗi trang, nó tìm chuỗi đánh dấu ở offset 32–287, đọc các ký tự chữ/số (theo đề, secret chỉ gồm chữ và số) tới NUL trong cùng trang, rồi kiểm tra chéo \cc{off == 32 + secret[0]} để loại chuỗi đánh dấu không do \cc{secret} ghi.
+\end{minipage}
+
+% =================================================================== 7
+\section{Kiểm thử}\label{sec:test}
+
+\begin{minipage}[t]{0.27\linewidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth,trim=0 400 596 38,clip]{grade.png}
+\captionof{figure}{Toàn bộ output của \cc{make grade}.}\label{fig:grade}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.7\linewidth}
+\vspace{0pt}
+\small
+\begin{tabularx}{\linewidth}{@{}c l X r@{}}
+\headrow \thd{Task} & \thd{Test} & \thd{Nội dung} & \thd{Điểm} \\
+3.1 & \cc{answers-syscall.txt} & Tệp trả lời đủ nội dung (chấm tay) & 5/5 \\
+\rowcolor{rowalt}
+3.2 & \cc{sandbox\_mask} & Mask \cc{open}, \cc{exec}, cả hai & 5/5 \\
+3.2 & \cc{sandbox\_fork} & \cc{sh} và process con thừa hưởng mask & 5/5 \\
+\rowcolor{rowalt}
+3.2 & \cc{sandbox\_block} & \cc{getpid}, \cc{fork} trả $-1$, không chạy handler & 5/5 \\
+3.2 & \cc{sandbox\_escape} & Gọi lại \cc{interpose} không thoát được & 5/5 \\
+\rowcolor{rowalt}
+3.3 & \cc{sandbox\_path} & Ngoại lệ \cc{README}, \cc{x}, \cc{sh} & 5/5 \\
+3.3 & \cc{sandbox\_most} & Mask gần như mọi call, chỉ cho \cc{exec grep} & 5/5 \\
+\rowcolor{rowalt}
+3.3 & \cc{sandbox\_minus} & Pathname \cc{---} là tên tệp thường & 5/5 \\
+3.3 & \cc{sandbox\_forkpath} & Process con thừa hưởng ngoại lệ & 5/5 \\
+\rowcolor{rowalt}
+3.4 & \cc{attack} & In ra secret của lần chạy \cc{secret} trước & 14/14 \\
+-- & \cc{time} & \cc{time.txt} chứa một số nguyên (7) & 1/1 \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{Tổng}} & \textbf{60/60} \\
+\bottomrule
+\end{tabularx}
+\captionof{table}{Các test của \cc{grade-lab-syscall}.}
+
+\vspace{4pt}
+\cc{make grade} đạt \textbf{60/60}, mã thoát 0 (Hình~\ref{fig:grade}), trên cả NixOS và WSL Ubuntu. Mã của nhóm biên dịch với \cc{-Wall -Werror} không có cảnh báo; dòng cảnh báo \cc{RWX} của linker (bị cắt trong ảnh) thuộc kernel gốc.
+\end{minipage}
+
+\vspace{4pt}
+\textbf{Kiểm thử bổ sung} (\cc{python3 test-sandbox-audit.py}, đạt 2/2 trên cả hai môi trường):
+\begin{itemize}
+  \item \cc{user/sbaudit.c}, 6 nhóm ca: con trỏ sai, chuỗi thiếu NUL, pathname 127/128 byte; cập nhật nguyên tử, không thay hay khôi phục ngoại lệ, cộng dồn mask; chuỗi vắt qua biên trang, kernel giữ bản sao riêng; chính sách giữ qua \cc{exec}; \cc{open(O\_CREATE)} bị chặn không tạo tệp; bit 31 của mask. Thêm 72 lần fork ($\cc{NPROC} + 8$) để kiểm tra slot process không giữ sandbox cũ.
+  \item \cc{attack}: 10 lần boot QEMU riêng, secret dài 1, 8, 16, 24 ký tự, bắt đầu bằng chữ số, chữ hoa hoặc chữ thường.
+\end{itemize}
 
 % =================================================================== 8
+\Needspace{14\baselineskip} % giữ tiêu đề cùng trang với bảng khó khăn
 \section{Thảo luận và tự đánh giá}\label{sec:discussion}
 
 \subsection{Khó khăn và cách khắc phục}
@@ -478,35 +591,41 @@ Mã của Task 3.2 biên dịch với \cc{-Wall -Werror} không có cảnh báo;
 \centering\small
 \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
 \headrow \thd{Vấn đề} & \thd{Nguyên nhân} & \thd{Cách khắc phục} \\
-Q2 gợi ý xem \cc{user/initcode.S} nhưng tệp không tồn tại & Bản xv6-labs-2026 chạy \cc{/init} trực tiếp bằng \cc{kexec()} trong \cc{forkret()} & Đọc \cc{forkret()} và \cc{user/init.c}; đối chiếu \cc{p->name = "init"}, \cc{pid = 1} để kết luận system call đầu tiên là \cc{open("console")}. \\
+Q2 gợi ý xem \cc{user/initcode.S} nhưng tệp không tồn tại & Bản xv6-labs-2026 chạy \cc{/init} trực tiếp bằng \cc{kexec()} trong \cc{forkret()} & Đọc \cc{forkret()} và \cc{user/init.c}; đối chiếu \cc{p->name = "init"}, \cc{pid = 1}. \\
 \rowcolor{rowalt}
-\cc{si} tại lệnh \cc{lw} làm gdb báo \cc{target is running} và mất quyền điều khiển & Bước đơn đi vào trap trên QEMU nhiều hart & Đặt \cc{b kerneltrap if \$scause == 0xd} rồi \cc{c} để đọc \cc{scause}, \cc{sepc}, \cc{stval} ngay khi trap xảy ra. \\
-\cc{sandbox 32768 - sh < exec.sh} chạy sau vài lệnh khác: process con của \cc{sh} bị page fault (\cc{scause 0xd}) trong \cc{malloc()} & Lỗi cố ý \cc{LAB\_SYSCALL}: \cc{uvmalloc()} không xóa trang, nên BSS của \cc{sh} vừa exec chứa rác, biến \cc{freep} (\cc{0x2010}) khác 0 & Tái hiện được cả khi \emph{không} dùng sandbox, nên đây không phải lỗi của Task 3.2. Autograder boot lại cho mỗi test; ảnh demo chạy lệnh này trước tiên. \\
+\cc{sh < exec.sh} chạy sau vài lệnh khác: process con của \cc{sh} bị page fault trong \cc{malloc()} & Lỗi cố ý \cc{LAB\_SYSCALL}: BSS của \cc{sh} vừa exec chứa rác, biến \cc{freep} khác 0 & Tái hiện được cả khi \emph{không} dùng sandbox. Autograder boot lại cho mỗi test; trong demo, lệnh này chạy đầu tiên. \\
+Không biết trước trang nào chứa secret & Index phụ thuộc số trang \cc{fork}/\cc{malloc}/\cc{exec} lấy và trả lại & Quét có giới hạn 32 trang, kiểm tra chéo offset; đo bằng instrumentation tạm để giải thích (index 19 và 15). \\
 \rowcolor{rowalt}
-\tbd{} (Task 3.3, 3.4) & & \\
+\cc{interpose(0, 0)} không làm \cc{argstr} thất bại & Địa chỉ 0 là mã chương trình, hợp lệ trong user space & Không dựa vào lỗi của \cc{argstr}; quy tắc “không nới quyền” từ chối mọi pathname khác \cc{sbpath} và \cc{"-"}. \\
 \bottomrule
 \end{tabularx}
 \caption{Các khó khăn gặp phải trong quá trình thực hiện.}
 \end{table}
 
+\subsection{Hạn chế}
+\begin{itemize}
+  \item Ngoại lệ là một pathname duy nhất, so khớp nguyên văn (không chuẩn hóa \cc{./README}). Khi \cc{open}/\cc{exec} đã bị mask, không thể đổi sang ngoại lệ khác, kể cả khi hẹp hơn: lựa chọn bảo thủ để không bao giờ nới quyền.
+  \item \cc{attack} in chuỗi khớp \emph{đầu tiên} tìm thấy. Nếu trong một phiên chạy \cc{secret} nhiều lần, bộ nhớ có thể còn secret cũ; khi thử \cc{secret xyzzy}, \cc{attack}, \cc{secret 0Kq9}, \cc{attack}, lần sau in \cc{xyzzy}. Autograder boot lại cho mỗi test nên chỉ có một secret. Giới hạn 32 trang được chọn theo phép đo trên mã nguồn và toolchain này.
+\end{itemize}
+
 \subsection{Tự đánh giá theo thang điểm}
 \begin{table}[H]
 \centering\small
-\begin{tabularx}{\linewidth}{@{}l c l X@{}}
-\headrow \thd{Hạng mục} & \thd{Điểm tối đa} & \thd{Mức tự đánh giá} & \thd{Minh chứng} \\
-1. Using gdb & 1.5 & Xuất sắc & 6/6 câu, mỗi câu có output gdb/ảnh chụp thật; \cc{answers-syscall.txt} đạt test. \\
+\begin{tabularx}{\linewidth}{@{}l c l >{\raggedright\arraybackslash}X@{}}
+\headrow \thd{Hạng mục} & \thd{Điểm} & \thd{Mức} & \thd{Minh chứng} \\
+1. Using gdb & 1.5 & Xuất sắc & 6/6 câu, mỗi câu có output gdb/ảnh chụp thật. \\
 \rowcolor{rowalt}
-2a. \cc{interpose} plumbing & 0.5 & Xuất sắc & Đủ prototype, stub, số hiệu, bảng \cc{syscalls[]}, handler; build \cc{-Werror} không cảnh báo; \cc{sandbox}, \cc{sbtest} chạy. \\
-2b. Mask rejection & 1.25 & Xuất sắc & \cc{sandbox\_mask}, \cc{sandbox\_block} đạt; kiểm tra một lần trong \cc{syscall()}; bị chặn thì trả $-1$, handler không chạy. \\
+2a. \cc{interpose} plumbing & 0.5 & Xuất sắc & Đủ prototype, stub, số hiệu, bảng \cc{syscalls[]}, handler; build \cc{-Werror} không cảnh báo. \\
+2b. Mask rejection & 1.25 & Xuất sắc & \cc{sandbox\_mask}, \cc{sandbox\_block} đạt; kiểm tra một lần trong \cc{syscall()}, handler không chạy. \\
 \rowcolor{rowalt}
-2c. Inheritance by \cc{fork} & 0.75 & Xuất sắc & \cc{sandbox\_fork} đạt; \cc{kfork()} sao chép, \cc{freeproc()} đặt lại; demo không rò mask. \\
-3a. Allowed pathname stored & 0.75 & \tbd & \\
+2c. Inheritance by \cc{fork} & 0.75 & Xuất sắc & \cc{sandbox\_fork} đạt; \cc{kfork()} sao chép, \cc{freeproc()} xóa; 72 lần fork không rò sandbox. \\
+3a. Allowed pathname stored & 0.75 & Xuất sắc & \cc{argstr} vào buffer \cc{MAXPATH}, kiểm tra lỗi và độ dài, kế thừa qua \cc{fork}, xử lý \cc{"-"}. \\
 \rowcolor{rowalt}
-3b. \cc{open}/\cc{exec} path check & 1.75 & \tbd & \\
-4. Attack xv6 & 2.0 & \tbd & \\
+3b. \cc{open}/\cc{exec} path check & 1.75 & Xuất sắc & \cc{sandbox\_path}, \cc{sandbox\_most}, \cc{sandbox\_minus} đạt; \cc{sandbox\_mask}, \cc{sandbox\_fork} vẫn đạt. \\
+4. Attack xv6 & 2.0 & Xuất sắc & \cc{attack} đạt, 10/10 lần boot riêng; chỉ sửa \cc{user/attack.c}; giải thích trang tái sử dụng và offset ở mục 6. \\
 \rowcolor{rowalt}
-5. Chất lượng mã, git, \cc{time.txt} & 0.5 & \tbd & Task 3.1–3.2: ba commit tách theo nội dung (trả lời gdb; plumbing; chặn và kế thừa mask). \\
-6. Báo cáo & 1.0 & \tbd & \\
+5. Chất lượng mã, git, \cc{time.txt} & 0.5 & Xuất sắc & Mã theo phong cách xv6, có chú thích; commit tách theo task của cả hai thành viên; \cc{time.txt} = 7. \\
+6. Báo cáo & 1.0 & Xuất sắc & Đủ các mục của đề: phân công, tự đánh giá, sáu câu gdb, tệp/trường/đường đi của \cc{interpose}, giải thích tấn công. \\
 \bottomrule
 \end{tabularx}
 \caption{Tự đánh giá theo rubric của đề.}
@@ -519,8 +638,8 @@ Q2 gợi ý xem \cc{user/initcode.S} nhưng tệp không tồn tại & Bản xv6
   \item MIT 6.1810, \emph{Lab: System calls}, Fall 2026. \url{https://pdos.csail.mit.edu/6.828/2026/labs/syscall.html}
   \item R. Cox, M. F. Kaashoek, R. Morris, \emph{xv6: a simple, Unix-like teaching operating system (RISC-V)}, chương 2, chương 3 (Hình 3-3) và mục 4.3–4.4. \url{https://mit-pdos.github.io/xv6-riscv-book/}
   \item \emph{The RISC-V Instruction Set Manual, Volume II: Privileged Architecture} – thanh ghi \cc{sstatus}, mã \cc{scause}. \url{https://github.com/riscv/riscv-isa-manual}
-  \item Mã nguồn xv6-labs-2026, nhánh \cc{syscall}: \cc{kernel/syscall.c}, \cc{kernel/trap.c}, \cc{kernel/trampoline.S}, \cc{kernel/proc.c}, \cc{kernel/vm.c}, \cc{kernel/kalloc.c}, \cc{kernel/memlayout.h}, \cc{user/init.c}, \cc{user/sandbox.c}, \cc{user/sbtest.c}.
-  \item Công cụ AI (Claude Code): hỗ trợ tự động hóa và ghi lại phiên gdb, cài đặt và kiểm thử Task 3.2, soạn thảo báo cáo. Nhóm chịu trách nhiệm về toàn bộ nội dung bài nộp. \tbd{} (khai báo AI cho Task 3.3, 3.4 nếu có).
+  \item Mã nguồn xv6-labs-2026, nhánh \cc{syscall}: \cc{kernel/\{syscall,trap,proc,exec,vm,kalloc\}.c}, \cc{kernel/trampoline.S}, \cc{kernel/memlayout.h}, \cc{user/\{init,umalloc,sandbox,sbtest,secret\}.c}.
+  \item Công cụ AI. Claude Code: hỗ trợ tự động hóa và ghi lại phiên gdb, cài đặt và kiểm thử Task 3.2, phân tích đường đi của trang nhớ ở Task 3.4, chụp ảnh minh chứng và soạn báo cáo. Codex: hỗ trợ rà soát, viết Task 3.3–3.4, viết test bổ sung và chạy kiểm chứng GDB/QEMU. Nhóm chịu trách nhiệm về toàn bộ nội dung bài nộp.
 \end{enumerate}
 
 \end{document}
