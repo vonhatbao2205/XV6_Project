@@ -3,10 +3,9 @@ Group 24120166 (Vo Nhat Bao) - 24120182 (Pham Le Huy Hoang)
 
 All values below come from real sessions of `make qemu-gdb` + gdb 17.2 on
 this branch (CPUS=3, gcc 15.2.0). Addresses depend on the build.
-Original screenshots: report/images/gdb-syscall.png, panic-asm.png and
-gdb-panic.png, also included in the report. Independent verification on
-2026-10-20: docs/verification/gdb-normal.txt and gdb-panic.txt (gcc 13.3.0,
-gdb 15.1; addresses differ from the original session).
+Screenshots of these sessions are in Report.pdf (section 3). An independent
+re-run on 2026-10-20 (gcc 13.3.0, gdb 15.1) gave the same results; only the
+addresses differ between builds.
 
 Q1. Looking at the backtrace output, which function called syscall?
 

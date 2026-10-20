@@ -1,4 +1,6 @@
 # Báo cáo nộp riêng (Report.pdf), không đưa vào lab.zip của make zipball
 report export-ignore
+# Ghi chú rà soát và log kiểm chứng nội bộ của nhóm, cũng không nộp
+docs export-ignore
 .gitattributes export-ignore
 * text=auto eol=lf
