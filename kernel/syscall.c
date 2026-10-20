@@ -135,6 +135,13 @@ static uint64 (*syscalls[])(void) = {
   // clang-format on
 };
 
+// Does the sandbox set up by interpose() reject system call num for p?
+static int
+sandbox_rejects(struct proc *p, int num)
+{
+  return (p->sbmask >> num) & 1;
+}
+
 void
 syscall(void)
 {
@@ -143,9 +150,14 @@ syscall(void)
 
   num = p->trapframe->a7;
   if (num > 0 && num < NELEM(syscalls) && syscalls[num]) {
-    // Use num to lookup the system call function for num, call it,
-    // and store its return value in p->trapframe->a0
-    p->trapframe->a0 = syscalls[num]();
+    if (sandbox_rejects(p, num)) {
+      // Fail without running the handler.
+      p->trapframe->a0 = -1;
+    } else {
+      // Use num to lookup the system call function for num, call it,
+      // and store its return value in p->trapframe->a0
+      p->trapframe->a0 = syscalls[num]();
+    }
   } else {
     printk("%d %s: unknown sys call %d\n", p->pid, p->name, num);
     p->trapframe->a0 = -1;
