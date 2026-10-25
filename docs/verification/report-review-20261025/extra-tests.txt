@@ -1,0 +1,14 @@
+make: 'kernel/kernel' is up to date.
+== Test sandbox additional regression == sandbox additional regression: OK (10.2s)
+== Test lab memory-reuse repeated verification == verified trial 1, length 1
+verified trial 2, length 8
+verified trial 3, length 16
+verified trial 4, length 24
+verified trial 5, length 8
+verified trial 6, length 8
+verified trial 7, length 8
+verified trial 8, length 8
+verified trial 9, length 8
+verified trial 10, length 8
+lab memory-reuse repeated verification: OK (19.9s)
+Score: 2/2
