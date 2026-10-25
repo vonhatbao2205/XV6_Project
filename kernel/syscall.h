@@ -21,4 +21,5 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_sync   22
+// syscall lab: restrict the system calls of a process.
 #define SYS_interpose 23
