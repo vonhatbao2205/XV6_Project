@@ -1,0 +1,105 @@
+diff --git a/kernel/kalloc.c b/kernel/kalloc.c
+index b3511f6..cf16821 100644
+--- a/kernel/kalloc.c
++++ b/kernel/kalloc.c
+@@ -8,6 +8,29 @@
+ #include "spinlock.h"
+ #include "riscv.h"
+ #include "defs.h"
++#include "proc.h"
++
++// KTRACE (measurement only, not part of the submission):
++// log every page alloc/free after boot, tagging secret's page.
++int ktrace;
++
++static int
++ktrace_secret(char *pa)
++{
++  for (int off = 32; off < 32 + 256; off++)
++    if (memcmp(pa + off, "Here it is: ", 12) == 0 &&
++        off == 32 + (uchar)pa[off + 12])
++      return 1;
++  return 0;
++}
++
++static void
++ktrace_log(char op, void *pa, void *ra)
++{
++  struct proc *p = myproc();
++  printk("KT %c %p %p %d %s%s\n", op, pa, ra, p ? p->pid : 0,
++         p ? p->name : "-", ktrace_secret(pa) ? " SECRET" : "");
++}
+ 
+ void freerange(void *pa_start, void *pa_end);
+ 
+@@ -59,6 +82,9 @@ kfree(void *pa)
+   memset(pa, 1, PGSIZE);
+ #endif
+ 
++  if (ktrace)
++    ktrace_log('F', pa, __builtin_return_address(0));
++
+   r = (struct run *)pa;
+ 
+   acquire(&kmem.lock);
+@@ -82,6 +108,8 @@ kalloc(void)
+     kmem.freelist = r->next;
+   }
+   release(&kmem.lock);
++  if (ktrace && r)
++    ktrace_log('A', r, __builtin_return_address(0));
+ #ifndef LAB_SYSCALL
+   if (r)
+     memset((char *)r, 5, PGSIZE); // fill with junk
+diff --git a/kernel/main.c b/kernel/main.c
+index df58e32..04dc5e5 100644
+--- a/kernel/main.c
++++ b/kernel/main.c
+@@ -5,6 +5,7 @@
+ #include "defs.h"
+ 
+ volatile static int started = 0;
++extern int ktrace;
+ 
+ // start() jumps here in supervisor mode on all CPUs.
+ void
+@@ -29,6 +30,7 @@ main()
+     fileinit();         // file table
+     virtio_disk_init(); // emulated hard disk
+     userinit();         // first user process
++    ktrace = 1;
+ 
+     __atomic_store_n(&started, 1, __ATOMIC_RELEASE);
+   } else {
+diff --git a/kernel/vm.c b/kernel/vm.c
+index a3623a5..759c586 100644
+--- a/kernel/vm.c
++++ b/kernel/vm.c
+@@ -8,6 +8,8 @@
+ #include "proc.h"
+ #include "fs.h"
+ 
++extern int ktrace;
++
+ /*
+  * the kernel's page table.
+  */
+@@ -258,6 +260,9 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
+     return oldsz;
+ 
+   oldsz = PGROUNDUP(oldsz);
++  if (ktrace)
++    printk("KT U %lx %lx %d %s\n", oldsz, newsz, myproc()->pid,
++           myproc()->name);
+   for (a = oldsz; a < newsz; a += sz) {
+     sz = PGSIZE;
+     mem = kalloc();
+@@ -273,6 +278,8 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
+       uvmdealloc(pagetable, a, oldsz);
+       return 0;
+     }
++    if (ktrace)
++      printk("KT M %lx %p\n", a, mem);
+   }
+   return newsz;
+ }

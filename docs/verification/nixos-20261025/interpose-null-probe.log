@@ -1,0 +1,15 @@
+xv6 kernel is booting
+
+hart 1 starting
+hart 2 starting
+init: starting sh
+$ sandbox 32768 - sbtest escape
+PROBE interpose pid 4: argstr=1 sbmask=0
+PROBE interpose pid 4: argstr=6 sbmask=8000
+PROBE interpose pid 4: argstr=6 sbmask=8000
+sbtest: escape confined
+sbtest: alive
+$ QEMU: Terminated
+
+$ riscv64-none-elf-objdump -s --start-address=0 --stop-address=0x10 -j .text user/_sbtest
+ 0000 011106ec 22e80010 63c30502 26e4ae84  ...."...c...&...

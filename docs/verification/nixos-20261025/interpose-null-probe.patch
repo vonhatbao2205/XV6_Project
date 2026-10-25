@@ -1,0 +1,15 @@
+diff --git a/kernel/sysproc.c b/kernel/sysproc.c
+index 88b0bfc..638842d 100644
+--- a/kernel/sysproc.c
++++ b/kernel/sysproc.c
+@@ -123,7 +123,9 @@ sys_interpose(void)
+   struct proc *p = myproc();
+ 
+   argint(0, &mask);
+-  if (argstr(1, path, sizeof(path)) < 0)
++  int n = argstr(1, path, sizeof(path));
++  printk("PROBE interpose pid %d: argstr=%d sbmask=%x\n", p->pid, n, p->sbmask);
++  if (n < 0)
+     return -1;
+   if ((p->sbmask & ((1U << SYS_open) | (1U << SYS_exec))) &&
+       strncmp(path, p->sbpath, MAXPATH) != 0 &&

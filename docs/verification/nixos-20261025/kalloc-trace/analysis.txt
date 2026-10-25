@@ -1,0 +1,74 @@
+secret page: pa 0x87f25000
+every allocation took the most recently freed page (LIFO): True
+
+step  op  pid name      caller              pages  pages above secret
+  28  A    3 sh        sys_exec               2  -  <- secret page
+  29  A    3 sh        uvmcreate              1  -
+  30  A    3 sh        walk                   2  -
+  31  A    3 sh        uvmalloc               1  -
+  32  A    3 sh        walk                   2  -
+  33  A    3 sh        uvmalloc               3  -
+  34  F    3 secret    uvmunmap              21  -
+  35  F    3 secret    freewalk               5  -
+  36  F    3 secret    sys_exec               2  0  <- secret page
+  37  A    3 secret    uvmalloc               9  -  <- secret page
+  38  F    2 sh        freeproc               1  -
+  39  F    2 sh        uvmunmap              13  8  <- secret page
+  40  F    2 sh        freewalk               5  13
+  41  A    2 sh        allocproc              1  12
+  42  A    2 sh        uvmcreate              1  11
+  43  A    2 sh        walk                   2  9
+  44  A    2 sh        uvmcopy                1  8
+  45  A    2 sh        walk                   2  6
+  46  A    2 sh        uvmcopy                4  2
+  47  A    4 sh        uvmalloc              16  -  <- secret page
+  48  A    4 sh        sys_exec               1  -
+  49  A    4 sh        uvmcreate              1  -
+  50  A    4 sh        walk                   2  -
+  51  A    4 sh        uvmalloc               1  -
+  52  A    4 sh        walk                   2  -
+  53  A    4 sh        uvmalloc               3  -
+  54  F    4 attack    uvmunmap              21  13  <- secret page
+  55  F    4 attack    freewalk               5  18
+  56  F    4 attack    sys_exec               1  19
+  57  A    4 attack    uvmalloc              32  -  <- secret page
+  58  F    2 sh        freeproc               1  -
+  59  F    2 sh        uvmunmap              36  12  <- secret page
+  60  F    2 sh        freewalk               5  17
+  61  A    2 sh        allocproc              1  16
+  62  A    2 sh        uvmcreate              1  15
+  63  A    2 sh        walk                   2  13
+  64  A    2 sh        uvmcopy                1  12
+  65  A    2 sh        walk                   2  10
+  66  A    2 sh        uvmcopy                4  6
+  67  A    5 sh        uvmalloc              16  -  <- secret page
+  68  A    5 sh        sys_exec               1  -
+  69  A    5 sh        uvmcreate              1  -
+  70  A    5 sh        walk                   2  -
+  71  A    5 sh        uvmalloc               1  -
+  72  A    5 sh        walk                   2  -
+  73  A    5 sh        uvmalloc               3  -
+  74  F    5 attack    uvmunmap              21  9  <- secret page
+  75  F    5 attack    freewalk               5  14
+  76  F    5 attack    sys_exec               1  15
+  77  A    5 attack    uvmalloc              32  -  <- secret page
+  78  F    2 sh        freeproc               1  -
+  79  F    2 sh        uvmunmap              36  16  <- secret page
+  80  F    2 sh        freewalk               5  21
+
+line  op  page        caller        pid name     pages above secret
+ 110  A   0x87f25000  sys_exec       3 sh       -
+ 154  F   0x87f25000  sys_exec       3 secret   0
+ 156  A   0x87f25000  uvmalloc       3 secret   -
+ 179  F   0x87f25000  uvmunmap       2 sh       0
+ 210  A   0x87f25000  uvmalloc       4 sh       -
+ 262  F   0x87f25000  uvmunmap       4 attack   0
+ 321  A   0x87f25000  uvmalloc       4 attack   -
+ 372  F   0x87f25000  uvmunmap       2 sh       0
+ 415  A   0x87f25000  uvmalloc       5 sh       -
+ 463  F   0x87f25000  uvmunmap       5 attack   0
+ 510  A   0x87f25000  uvmalloc       5 attack   -
+ 565  F   0x87f25000  uvmunmap       2 sh       0
+
+line 322: attack pid 4: sbrk region starts at va 0x4000; secret page mapped at va 0x17000 = index 19
+line 511: attack pid 5: sbrk region starts at va 0x4000; secret page mapped at va 0x13000 = index 15
