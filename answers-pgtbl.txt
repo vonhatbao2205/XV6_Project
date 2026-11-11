@@ -1,0 +1,157 @@
+CS333 Lab 3: Page tables
+Group 24120166 (Vo Nhat Bao), 24120182 (Pham Le Huy Hoang)
+Q1-Q2: Vo Nhat Bao.  Q3-Q4: Pham Le Huy Hoang.
+
+All values come from a real run of pgtbltest on this branch (QEMU 10.2.4,
+3 CPUs, gcc 15.3.0), captured before Task 4 was merged. Physical addresses
+depend on the build and on the order of allocations; the virtual layout
+does not.
+
+How to decode a line of print_pgtbl:
+  pa   = (pte >> 10) << 12          (PTE2PA: PPN in bits 53..10)
+  perm = pte & 0x3FF                (PTE_FLAGS: bits 9..0)
+  bit  0 V valid     bit 1 R read     bit 2 W write    bit 3 X execute
+  bit  4 U user      bit 5 G global   bit 6 A accessed bit 7 D dirty
+  bits 9..8 RSW (reserved for software, unused by xv6)
+G and RSW are 0 in every entry. A and D are set by the hardware page
+walker (QEMU): A on any access through the PTE, D on a store. Writes that
+the kernel does through its direct map (exec's loadseg, copyout) do not
+use the user PTE, so they never set A or D in it.
+
+Layout of pgtbltest (riscv64-none-elf-readelf -l user/_pgtbltest):
+  LOAD 0: va 0x0,    0xfb1 bytes, R E  -> .text + .rodata  (1 page)
+  LOAD 1: va 0x1000, 0x30 bytes,  RW   -> .data + .bss     (1 page)
+exec() then adds USERSTACK+1 = 2 pages: a guard page and a 1-page stack,
+so p->sz = 0x4000. The handout's sample shows two text pages; with our
+compiler text + rodata fit in one page, so the data page is at 0x1000.
+
+Q1. For every page-table entry in the print_pgtbl output, explain what it
+    logically contains and what its permission bits are.
+
+va 0x0 pte 0x21FC885B pa 0x87F22000 perm 0x5B = V R X U A
+    Text page: the code of pgtbltest and of the user library (printf,
+    malloc, ulib) plus read-only constants (.rodata, e.g. printf's digits
+    table). User mode may read and execute it; W=0, so a store faults and
+    the program cannot overwrite its own code. A=1 because the CPU has
+    fetched instructions from it; D=0 because the program never wrote it.
+
+va 0x1000 pte 0x21FC7C17 pa 0x87F1F000 perm 0x17 = V R W U
+    Data page: .data and .bss (the global testname, malloc's freep and
+    base). User mode may read and write it; X=0, so data cannot be run as
+    code. A=0 and D=0: at this point the program has not touched any of
+    these variables yet (testname is first set in pgaccess_test, freep and
+    base in the first malloc).
+
+va 0x2000 pte 0x21FC7807 pa 0x87F1E000 perm 0x07 = V R W
+    Stack guard page. exec() allocates it as a normal page and then
+    uvmclear() clears PTE_U. Because U=0, any user access faults, so a
+    stack overflow kills the process instead of silently overwriting the
+    data page below. walkaddr() also refuses pages without PTE_U, so the
+    kernel's copyin/copyout cannot be tricked into using it. A=D=0: no
+    access has ever succeeded.
+
+va 0x3000 pte 0x21FC74D7 pa 0x87F1D000 perm 0xD7 = V R W U A D
+    User stack (USERSTACK = 1 page). exec() put argv strings and the argv
+    array at its top; sp starts there and grows down towards the guard.
+    Read/write for the user, not executable. A=1 and D=1 because function
+    calls load and store stack frames.
+
+va 0x4000 ... va 0x9000 (6 lines) pte 0x0 pa 0x0 perm 0x0
+    Not mapped (V=0). p->sz = 0x4000, so this is where the heap will grow
+    when sbrk()/malloc() is called; pgtbltest has not called malloc yet
+    (its first malloc is in pgaccess_test). The PTE slots exist (the same
+    level-0 page-table page covers 0x0-0x1FFFFF) but contain 0. An access
+    here page-faults; vmfault() maps lazily only below p->sz, so the
+    process would be killed.
+
+va 0x3FFFFF6000 ... va 0x3FFFFFC000 (7 lines) pte 0x0 pa 0x0 perm 0x0
+    Not mapped: part of the large unused gap between the heap and the
+    pages at the top of the address space (MAXVA = 2^38 = 0x4000000000).
+    Kernel stacks are not here: they exist only in the kernel page table.
+
+va 0x3FFFFFD000 pte 0x0 pa 0x0 perm 0x0
+    USYSCALL = TRAPFRAME - PGSIZE (kernel/memlayout.h). Without Task 4 it
+    is not mapped, which is why ugetpid_test faults with
+    stval=0x3fffffd000 in this run. Task 4 maps it with V|R|U (perm 0x13,
+    plus A=0x40 once the page has been read): a read-only user page that
+    holds struct usyscall { int pid; }.
+
+va 0x3FFFFFE000 pte 0x21FD08C7 pa 0x87F42000 perm 0xC7 = V R W A D
+    TRAPFRAME: p->trapframe (struct trapframe). U=0, so user code cannot
+    read or change it; only the trampoline code, running in supervisor
+    mode while satp still holds the user page table, uses it: uservec
+    saves the 31 user registers there and userret restores them. Those
+    loads and stores set A and D. Its physical page was allocated by
+    allocproc() when fork() created the process, long before exec(), which
+    is why its address is far from the other pages.
+
+va 0x3FFFFFF000 pte 0x20001C4B pa 0x80007000 perm 0x4B = V R X A
+    TRAMPOLINE: uservec/userret (kernel/trampoline.S). pa 0x80007000 is
+    the symbol trampoline inside the kernel's own text (kernel/kernel.sym);
+    the same physical page is mapped at the same virtual address in the
+    kernel page table and in every user page table, so the code keeps
+    running when it switches satp. R and X but not W; U=0, so only the
+    supervisor can execute it. A=1 from instruction fetches.
+
+xv6 does not place the pages consecutively in physical memory: kalloc()
+pops from a LIFO free list that freerange() filled in increasing address
+order, so pages come from the top of RAM downwards. The gap between the
+text page (0x87F22000) and the data page (0x87F1F000) holds 0x87F21000 and
+0x87F20000: the level-1 and level-0 page-table pages that walk() allocated
+while mapping the text page (they appear as non-leaf entries in vmprint).
+
+Q2. For every leaf page in the vmprint output, explain what it logically
+    contains, what the permission bits allow and disallow, and how it
+    relates to the output of print_pgtbl().
+
+The tree (root 0x87f25000) has two branches. Root index 0 -> level-1 page
+0x87f21000 -> index 0 -> level-0 page 0x87f20000 with 4 leaves for va
+0x0-0x3fff. Root index 255 -> level-1 page 0x87f24000 -> index 511 ->
+level-0 page 0x87f23000 with 2 leaves at index 510 and 511, because
+0x3fffffe000 = 255<<30 | 511<<21 | 510<<12. Non-leaf PTEs have flags 0x01
+(V only): R=W=X=0 means "pointer to the next level", so vmprint prints no
+permissions for them.
+
+0x0000000000000000 RXU (pte 0x21fc885b, pa 0x87f22000): text + rodata.
+    Allows: user read and instruction fetch. Disallows: writes (store
+    page fault), so code and constants cannot be modified.
+0x0000000000001000 RWU (pte 0x21fc7c17, pa 0x87f1f000): data + bss.
+    Allows: user read and write. Disallows: execute (X=0), so bytes
+    written into global data can never run as code.
+0x0000000000002000 RW (pte 0x21fc7807, pa 0x87f1e000): stack guard.
+    R and W are set but U is not, so user mode can do nothing with it:
+    every user load, store or fetch faults, so running off the bottom of
+    the stack traps instead of corrupting the data page.
+0x0000000000003000 RWU (pte 0x21fc74d7, pa 0x87f1d000): user stack.
+    Allows: user read and write. Disallows: execute.
+0x0000003fffffe000 RW (pte 0x21fd08c7, pa 0x87f42000): trapframe.
+    Supervisor read/write only (U=0); not executable. User code cannot
+    forge the registers that the kernel will restore.
+0x0000003ffffff000 RX (pte 0x20001c4b, pa 0x80007000): trampoline.
+    Supervisor read/execute only; no write, and U=0 so user code cannot
+    jump into it.
+
+Relation to print_pgtbl: both programs read the same page table of the
+same process, so each of the 6 leaves of vmprint has exactly the same pte
+and pa as one of the 6 non-zero lines of print_pgtbl (va 0x0, 0x1000,
+0x2000, 0x3000, 0x3FFFFFE000, 0x3FFFFFF000). The other 14 print_pgtbl
+lines have pte 0: those entries are invalid, and vmprint skips invalid
+entries. Differences: print_pgtbl samples 20 fixed addresses and shows
+only the last-level PTE (pgpte uses walk()), with all 10 flag bits
+including A and D; vmprint walks the whole tree, so it also shows the 4
+non-leaf PTEs and the page-table pages they point to, and decodes only
+R, W, X, U. Compared with Figure 3.4 of the xv6 book, this process has
+the same text, data, guard, stack, trapframe and trampoline pages but no
+heap pages yet. After Task 4, vmprint shows one more leaf,
+0x0000003fffffd000 with RU (the USYSCALL page, read-only for the user).
+
+Q3. Which other xv6 system call(s) could be made faster using this shared
+    page? Explain how.
+
+    [Task 4, Pham Le Huy Hoang: answer to be written.]
+
+Q4. How many superpage PTEs does your solution use? How many bottom-level
+    pages do these superpage PTEs save?
+
+    [Task 5, Pham Le Huy Hoang: answer to be written, using the kernel
+    page table printed by vmprint after the superpage change.]
