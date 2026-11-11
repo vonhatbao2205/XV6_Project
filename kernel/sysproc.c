@@ -107,10 +107,61 @@ sys_vmprint(void)
 #endif
 
 #ifdef LAB_PGTBL
-int
+// Upper limit on the pages one pgaccess() call may scan. The bitmask
+// for that many pages (512 bytes) lives on the 4 KB kernel stack.
+#define PGACCESS_MAX 4096
+
+// pgaccess(base, npages, mask): report which of the npages user pages
+// starting at the page that contains base have been accessed since
+// the previous check. Bit i of the mask (byte i/8, bit i%8) is set if
+// page i was accessed; the first page is the least significant bit.
+// Returns 0, or -1 if an argument is invalid or a page is not mapped.
+uint64
 sys_pgaccess(void)
 {
-  // lab pgtbl: your code here.
+  uint64 base, umask;
+  int npages;
+  uchar mask[PGACCESS_MAX / 8];
+  struct proc *p = myproc();
+
+  argaddr(0, &base);
+  argint(1, &npages);
+  argaddr(2, &umask);
+
+  if (npages <= 0 || npages > PGACCESS_MAX)
+    return -1;
+  base = PGROUNDDOWN(base);
+  // walk() panics on va >= MAXVA, so the whole range must lie below it.
+  if (base >= MAXVA || npages > (MAXVA - base) / PGSIZE)
+    return -1;
+
+  int nbytes = (npages + 7) / 8; // copy out exactly this many bytes
+  memset(mask, 0, nbytes);
+
+  // Pass 1: every page must be a valid user page; collect the A bits.
+  // Nothing is changed yet, so a failed call leaves the bits intact.
+  for (int i = 0; i < npages; i++) {
+    pte_t *pte = walk(p->pagetable, base + (uint64)i * PGSIZE, 0);
+    if (pte == 0 || (*pte & PTE_V) == 0 || (*pte & PTE_U) == 0)
+      return -1;
+    if (*pte & PTE_A)
+      mask[i / 8] |= 1 << (i % 8);
+  }
+
+  // Pass 2: copy the mask to user space; fails for a bad buffer.
+  if (copyout(p->pagetable, p->sz, umask, (char *)mask, nbytes) < 0)
+    return -1;
+
+  // Pass 3: clear the reported A bits so the next call only sees new
+  // accesses. No sfence.vma is needed here: the trampoline flushes the
+  // TLB when it switches back to this page table (userret), so the
+  // next user access walks the page table again and re-sets PTE_A.
+  for (int i = 0; i < npages; i++) {
+    if (mask[i / 8] & (1 << (i % 8))) {
+      pte_t *pte = walk(p->pagetable, base + (uint64)i * PGSIZE, 0);
+      *pte &= ~PTE_A;
+    }
+  }
   return 0;
 }
 #endif
