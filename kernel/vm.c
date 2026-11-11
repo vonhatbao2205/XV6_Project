@@ -148,10 +148,55 @@ walkaddr(pagetable_t pagetable, uint64 va)
 
 
 #if defined(LAB_PGTBL) || defined(SOL_MMAP) || defined(SOL_COW)
+// Print the valid PTEs of one page-table page and, depth first, of
+// the page-table pages below it. level is the Sv39 level of
+// pagetable (2 = root, 0 = last level) and va is the first virtual
+// address that pagetable covers.
+static void
+vmprint_level(pagetable_t pagetable, int level, uint64 va)
+{
+  // one " .." per depth in the tree: root entries are at depth 1.
+  static char *indent[] = {" .. .. ..", " .. ..", " .."};
+
+  // there are 2^9 = 512 PTEs in a page-table page.
+  for (int i = 0; i < 512; i++) {
+    pte_t pte = pagetable[i];
+    if ((pte & PTE_V) == 0)
+      continue;
+
+    // entry i maps 2^PXSHIFT(level) bytes: 1 GB, 2 MB or 4 KB.
+    uint64 a = va + ((uint64)i << PXSHIFT(level));
+
+    if (pte & (PTE_R | PTE_W | PTE_X)) {
+      // a leaf: decode its permission bits.
+      char perm[5], *f = perm;
+      if (pte & PTE_R)
+        *f++ = 'R';
+      if (pte & PTE_W)
+        *f++ = 'W';
+      if (pte & PTE_X)
+        *f++ = 'X';
+      if (pte & PTE_U)
+        *f++ = 'U';
+      *f = 0;
+      printk("%s%p: pte %p pa %p %s\n", indent[level], (void *)a, (void *)pte,
+             (void *)PTE2PA(pte), perm);
+    } else {
+      // R=W=X=0: pte points to the next-level page-table page.
+      printk("%s%p: pte %p pa %p\n", indent[level], (void *)a, (void *)pte,
+             (void *)PTE2PA(pte));
+      if (level > 0)
+        vmprint_level((pagetable_t)PTE2PA(pte), level - 1, a);
+    }
+  }
+}
+
+// Print a page table, one line per valid PTE (lab pgtbl).
 void
 vmprint(pagetable_t pagetable)
 {
-  // your code here
+  printk("page table %p\n", (void *)pagetable);
+  vmprint_level(pagetable, 2, 0);
 }
 #endif
 

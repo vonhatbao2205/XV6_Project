@@ -95,7 +95,7 @@ sys_pause(void)
 
 
 #ifdef LAB_PGTBL
-int
+uint64
 sys_vmprint(void)
 {
   struct proc *p;
