@@ -1,0 +1,524 @@
+% Biên dịch: latexmk -xelatex Report.tex   (Overleaf: Compiler = XeLaTeX)
+% Ảnh chụp terminal và logo trường nằm trong images/.
+% Các hộp màu cam (hoangbox, \hoang{...}) là phần Task 4 và 5 của Hoàng; xóa hộp sau khi điền.
+\documentclass[10pt,a4paper]{article}
+\usepackage[left=2cm,right=1.8cm,top=2.1cm,bottom=1.9cm,headheight=14pt,headsep=12pt,footskip=22pt]{geometry}
+\usepackage{fontspec}
+\setmainfont{texgyretermes}[Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,
+  ItalicFont=*-italic,BoldItalicFont=*-bolditalic]
+\setmonofont{DejaVuSansMono}[Path=fonts/,Extension=.ttf,UprightFont=*,BoldFont=*-Bold,
+  ItalicFont=*-Oblique,BoldItalicFont=*-BoldOblique,Scale=0.86]
+\usepackage{polyglossia}
+\setdefaultlanguage{vietnamese}
+\usepackage[table]{xcolor}
+\usepackage{graphicx,booktabs,tabularx,array,multirow,etoolbox,enumitem,titlesec,
+  caption,float,fancyhdr,lastpage,listings,fancyvrb,tikz,multicol,needspace}
+\usepackage[most]{tcolorbox}
+\usetikzlibrary{arrows.meta,calc,positioning}
+\usepackage{hyperref}
+
+% ------------------------------------------------------------------ Thông tin bìa
+% Điền tên giảng viên / lớp nếu cần; để trống thì dòng tương ứng không hiển thị.
+\newcommand{\GVHD}{}
+\newcommand{\LOP}{}
+
+% ------------------------------------------------------------------ Màu và kiểu chung
+\definecolor{hcmus}{HTML}{283F78}
+\definecolor{boxbg}{HTML}{EDF1F8}
+\definecolor{codebg}{HTML}{F6F8FB}
+\definecolor{rowalt}{HTML}{F4F6FA}
+\definecolor{cmt}{HTML}{3B7A57}
+\definecolor{str}{HTML}{9A3B26}
+\definecolor{todo}{HTML}{B54708}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=hcmus,
+  pdftitle={Báo cáo Lab 3: Page Tables},
+  pdfauthor={Võ Nhất Bảo, Phạm Lê Huy Hoàng}}
+\graphicspath{{images/}}
+
+\linespread{1.0}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\tolerance=2000
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\emergencystretch=3em
+\setlist{nosep,leftmargin=*,itemsep=1pt,topsep=1pt}
+\captionsetup{font=small,labelfont={bf,color=hcmus},labelsep=period,skip=3pt}
+\renewcommand{\arraystretch}{1.12}
+
+\titleformat{\section}{\large\bfseries\color{hcmus}}{\thesection.}{0.5em}{}[{\color{hcmus}\titlerule[0.6pt]}]
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titleformat{\subsection}{\normalsize\bfseries\color{hcmus}}{\thesubsection.}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{hcmus}Trường ĐH Khoa học Tự nhiên, ĐHQG-HCM}
+\fancyhead[R]{\small\color{hcmus}CS333 Hệ điều hành}
+\fancyfoot[L]{\small Lab 3: Page Tables}
+\fancyfoot[R]{\small Trang \thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\lstset{language=C,basicstyle=\ttfamily\footnotesize,columns=fullflexible,keepspaces=true,
+  numbers=left,numberstyle=\tiny\color{gray},numbersep=9pt,xleftmargin=24pt,
+  frame=l,framerule=1.6pt,rulecolor=\color{hcmus},backgroundcolor=\color{codebg},
+  framexleftmargin=2pt,aboveskip=3pt,belowskip=3pt,breaklines=true,upquote=true,
+  keywordstyle=\color{hcmus}\bfseries,commentstyle=\color{cmt}\itshape,
+  stringstyle=\color{str},showstringspaces=false,
+  morekeywords={uint,uint64,uchar,pte_t,pagetable_t}}
+\newcommand{\srcname}[1]{{\small\bfseries\color{hcmus}#1}\par\vspace{-2pt}}
+\newcommand{\cc}[1]{\texttt{#1}}
+\newcommand{\thd}[1]{\textcolor{white}{\textbf{#1}}}
+\newcommand{\headrow}{\rowcolor{hcmus}}
+% Phần Hoàng cần điền: \hoang{...} trong bảng, hoangbox cho cả đoạn.
+\newcommand{\hoang}[1]{\textcolor{todo}{\textit{[Hoàng: #1]}}}
+\newtcolorbox{hoangbox}{colback=todo!5,colframe=todo,boxrule=0.6pt,arc=0pt,outer arc=0pt,
+  left=5pt,right=5pt,top=2pt,bottom=2pt,fontupper=\small,
+  title={\small Phần của Phạm Lê Huy Hoàng, cần điền},fonttitle=\bfseries,
+  coltitle=white,colbacktitle=todo,toptitle=1pt,bottomtitle=1pt}
+\fvset{fontsize=\small}
+
+\begin{document}
+
+% =================================================================== TRANG BÌA
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay]
+  \draw[hcmus,line width=2.6pt]
+    ($(current page.north west)+(1.25cm,-1.25cm)$) rectangle ($(current page.south east)+(-1.25cm,1.25cm)$);
+  \draw[hcmus,line width=0.7pt]
+    ($(current page.north west)+(1.45cm,-1.45cm)$) rectangle ($(current page.south east)+(-1.45cm,1.45cm)$);
+\end{tikzpicture}
+\begin{center}
+\vspace*{-0.4cm}
+{\fontsize{13.5}{18}\selectfont ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH\par}
+{\fontsize{13.5}{18}\selectfont\bfseries TRƯỜNG ĐẠI HỌC KHOA HỌC TỰ NHIÊN\par}
+{\fontsize{13.5}{18}\selectfont\bfseries KHOA CÔNG NGHỆ THÔNG TIN\par}
+\vspace{6pt}
+{\color{hcmus}\rule[0.6ex]{3.4cm}{0.8pt}\hspace{0.4em}\raisebox{0.15ex}{\tikz\fill[hcmus,rotate=45] (0,0) rectangle (0.13,0.13);}\hspace{0.4em}\rule[0.6ex]{3.4cm}{0.8pt}}\par
+\vspace{1.5cm}
+\includegraphics[width=4.9cm]{logo-hcmus.png}\par
+\vspace{1.5cm}
+{\fontsize{17}{22}\selectfont\bfseries BÁO CÁO THỰC HÀNH\par}
+\vspace{6pt}
+{\fontsize{14}{18}\selectfont MÔN HỌC: HỆ ĐIỀU HÀNH (CS333)\par}
+\vspace{1.1cm}
+{\fontsize{27}{33}\selectfont\bfseries\color{hcmus} LAB 3\par}
+\vspace{6pt}
+{\fontsize{25}{31}\selectfont\bfseries\color{hcmus} PAGE TABLES\par}
+\vspace{1.7cm}
+\ifdefempty{\GVHD}{\def\gvhdrow{}}{\def\gvhdrow{\textbf{Giảng viên hướng dẫn:} & \multicolumn{2}{@{}l}{\GVHD}\\}}
+\ifdefempty{\LOP}{\def\loprow{}}{\def\loprow{\textbf{Lớp:} & \multicolumn{2}{@{}l}{\LOP}\\}}
+{\fontsize{13}{19}\selectfont
+\begin{tabular}{@{}l@{\hspace{1.4em}}l@{\hspace{1.6em}}l@{}}
+\textbf{Sinh viên thực hiện:} & Võ Nhất Bảo & 24120166 \\
+ & Phạm Lê Huy Hoàng & 24120182 \\[4pt]
+\textbf{Mã nhóm:} & \multicolumn{2}{@{}l}{24120166\_24120182} \\
+\gvhdrow\loprow
+\end{tabular}\par}
+\vfill
+{\fontsize{13}{17}\selectfont\itshape Thành phố Hồ Chí Minh, tháng 11 năm 2026\par}
+\vspace*{0.3cm}
+\end{center}
+\newpage
+
+% =================================================================== MỤC LỤC
+\setcounter{tocdepth}{1}
+\section*{Mục lục}
+\begin{multicols}{2}\small\makeatletter\@starttoc{toc}\makeatother\end{multicols}
+\vspace{-4pt}
+
+% =================================================================== 1
+\section{Thông tin nhóm và phân công công việc}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}c c >{\raggedright\arraybackslash}p{3.3cm} >{\raggedright\arraybackslash}X c@{}}
+\headrow \thd{STT} & \thd{MSSV} & \thd{Họ và tên} & \thd{Công việc đảm nhận} & \thd{Đóng góp} \\
+1 & 24120166 & Võ Nhất Bảo & Task 1: giải mã page table của \cc{pgtbltest} (Q1). Task 2: \cc{vmprint()} và Q2. Task 3: system call \cc{pgaccess()}, định nghĩa \cc{PTE\_A}, chương trình kiểm thử bổ sung \cc{user/pgaudit.c}. Ảnh minh chứng và các mục 1 đến 5 của báo cáo. & 50\% \\
+\rowcolor{rowalt}
+2 & 24120182 & Phạm Lê Huy Hoàng & Task 4: trang \cc{USYSCALL} và \cc{ugetpid()}, Q3. Task 5: superpage cho kernel page table, Q4. \hoang{bổ sung chi tiết} & 50\% \\
+\multicolumn{3}{@{}l}{\textbf{Công việc chung}} & Chạy autograder, rà soát chéo mã nguồn, \cc{time.txt}, báo cáo, đóng gói bài nộp. & Cả hai \\
+\bottomrule
+\end{tabularx}
+\caption{Phân công công việc và tỷ lệ đóng góp.}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}c >{\raggedright\arraybackslash}p{4.1cm} >{\raggedright\arraybackslash}X c c@{}}
+\headrow \thd{Task} & \thd{Nội dung} & \thd{Tệp chính} & \thd{Hoàn thành} & \thd{Autograder} \\
+1 & Đọc page table của process (Q1) & \cc{answers-pgtbl.txt} & 100\% & chấm tay \\
+\rowcolor{rowalt}
+2 & \cc{vmprint} (Q2) & \cc{kernel/vm.c}, \cc{kernel/sysproc.c} & 100\% & 10/10 \\
+3 & \cc{pgaccess} & \cc{kernel/riscv.h}, \cc{kernel/sysproc.c}, \cc{user/pgaudit.c}, \cc{Makefile} & 100\% & 10/10 \\
+\rowcolor{rowalt}
+4 & Trang \cc{USYSCALL} (Q3) & \hoang{tệp} & \hoang{\%} & \hoang{/10} \\
+5 & Superpage (Q4) & \hoang{tệp} & \hoang{\%} & \hoang{/10} \\
+\rowcolor{rowalt}
+& Câu trả lời, số giờ & \cc{answers-pgtbl.txt}, \cc{time.txt} (10 giờ) & 100\% & 5/5, 1/1 \\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Tổng \cc{make grade}} (hiện tại 26/46, chưa có Task 4 và 5)} & \hoang{/46} \\
+\bottomrule
+\end{tabularx}
+\caption{Mức hoàn thành tự đánh giá và điểm của \cc{make grade}. Test \cc{answers-pgtbl.txt} chỉ kiểm tra tệp có nội dung; câu trả lời được chấm tay.}
+\end{table}
+
+% =================================================================== 2
+\section{Môi trường và kiến thức nền}
+
+\textbf{Môi trường.} NixOS 26.05 (x86-64). \cc{shell.nix} của nhóm cung cấp \cc{riscv64-none-elf-gcc} 15.3.0, Binutils 2.46, QEMU 10.2.4 (3 CPU), Python 3 và \cc{pexpect}. Mã nguồn lấy từ \cc{git://g.csail.mit.edu/xv6-labs-2026}, nhánh \cc{pgtbl}, commit gốc \cc{d1eb62f}, \cc{conf/lab.mk} đặt \cc{LAB=pgtbl}. Nhóm không sửa \cc{grade-lab-pgtbl}, \cc{gradelib.py} và \cc{user/pgtbltest.c}. Ảnh chụp trong báo cáo do script \cc{scripts/capture\_lab3.py} (nằm ngoài repo) tạo: script chạy xv6 hoặc \cc{make grade} thật trong xterm rồi chụp cửa sổ, log văn bản lưu cạnh ảnh.
+
+\textbf{Sv39.} Xv6 dùng sơ đồ Sv39 của RISC-V~\ref{ref:book}\ref{ref:priv}. Địa chỉ ảo dùng 39 bit: ba chỉ số 9 bit (bit 38 đến 30, 29 đến 21, 20 đến 12) chọn PTE ở ba mức page table, 12 bit cuối là offset trong trang. Mỗi trang page table chứa 512 PTE 64 bit. Một PTE có \cc{V=1} và \cc{R=W=X=0} trỏ xuống trang page table mức dưới; PTE có ít nhất một trong \cc{R}, \cc{W}, \cc{X} là PTE lá. Lá ở mức 0 map một trang 4 KB, lá ở mức 1 map 2 MB (megapage, dùng ở Task 5). Xv6 chỉ dùng nửa dưới không gian địa chỉ: \cc{MAXVA} $= 2^{38}$ = \cc{0x4000000000}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.31cm,y=0.62cm,font=\scriptsize]
+  \newcommand{\fld}[5]{%
+    \draw[hcmus,fill=#5] (#1,0) rectangle (#2,1);
+    \node at ({(#1+#2)/2},0.5) {#4};
+    \node[font=\tiny,text=gray] at ({(#1+#2)/2},1.3) {#3};}
+  \fld{0}{6}{63..54}{Reserved}{white}
+  \fld{6}{26}{53..10}{PPN (số hiệu trang vật lý, 44 bit)}{white}
+  \fld{26}{29}{9..8}{RSW}{white}
+  \fld{29}{31}{7}{D}{hcmus!22}
+  \fld{31}{33}{6}{A}{hcmus!22}
+  \fld{33}{35}{5}{G}{white}
+  \fld{35}{37}{4}{U}{boxbg}
+  \fld{37}{39}{3}{X}{boxbg}
+  \fld{39}{41}{2}{W}{boxbg}
+  \fld{41}{43}{1}{R}{boxbg}
+  \fld{43}{45}{0}{V}{boxbg}
+\end{tikzpicture}
+\caption{Cấu trúc PTE Sv39. \cc{PTE2PA(pte) = (pte >> 10) << 12}, \cc{PTE\_FLAGS(pte) = pte \& 0x3FF}. Phần cứng đặt \cc{A} khi dùng PTE cho bất kỳ truy cập nào và đặt \cc{D} khi dùng nó cho lệnh ghi.}\label{fig:pte}
+\end{figure}
+
+% =================================================================== 3
+\section{Task 1: Inspect a user-process page table}\label{sec:task1}
+
+\cc{print\_pgtbl()} trong \cc{pgtbltest} gọi system call \cc{pgpte(va)} cho 10 trang đầu và 10 trang cuối dưới \cc{MAXVA}. Phía kernel (\cc{kernel/stats.c}), \cc{sys\_pgpte()} gọi \cc{walk(p->pagetable, va, 0)} và trả về PTE mức 0, hoặc 0 nếu không có. Chương trình in \cc{pte}, \cc{pa = PTE2PA(pte)} và \cc{perm = PTE\_FLAGS(pte)}, gồm cả bit \cc{A}, \cc{D}.
+
+Để biết trang nào chứa gì, nhóm xem program header của \cc{user/\_pgtbltest} bằng \cc{riscv64-none-elf-readelf -l}. Segment thứ nhất (\cc{.text} và \cc{.rodata}, 0xfb1 byte, quyền \cc{R E}) nằm ở va 0. Segment thứ hai (\cc{.data} và \cc{.bss}, 0x30 byte, \cc{RW}) nằm ở \cc{0x1000} vì \cc{user/user.ld} căn \cc{.data} theo trang. Sau đó \cc{exec()} cấp thêm \cc{USERSTACK + 1 = 2} trang cho guard page và stack, nên \cc{p->sz = 0x4000}. Ví dụ trong đề có hai trang text; với trình biên dịch của nhóm, text và rodata vừa một trang.
+
+\begin{figure}[H]
+\centering
+\begin{minipage}[c]{0.43\linewidth}
+\includegraphics[width=\linewidth]{print-pgtbl.png}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.54\linewidth}\small
+Dòng \cc{va 0x0 pte 0x21FC885B pa 0x87F22000 perm 0x5B}:
+\begin{itemize}
+  \item \cc{pa} = \cc{(0x21FC885B >> 10) << 12} = \cc{0x87F22000};
+  \item \cc{perm} = \cc{0x5B} = \cc{0101\,1011}$_2$: bit 0 (V), 1 (R), 3 (X), 4 (U), 6 (A).
+\end{itemize}
+Các dòng khác giải mã theo cùng cách ở Bảng~\ref{tab:q1}. Bit \cc{G} và hai bit \cc{RSW} bằng 0 ở mọi dòng. Kernel ghi vào trang user qua direct map (\cc{loadseg} trong \cc{exec}, \cc{copyout}), không đi qua PTE của user, nên những lần ghi đó không bật \cc{A} hay \cc{D}.
+\end{minipage}
+\caption{Phần \cc{print\_pgtbl} trong output thật của \cc{pgtbltest}, chụp trước khi có Task 4.}\label{fig:print}
+\end{figure}
+
+\textbf{Q1. Mỗi PTE trong output của \cc{print\_pgtbl} chứa gì và các bit quyền là gì?}
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.35cm} c >{\raggedright\arraybackslash}p{1.6cm} >{\raggedright\arraybackslash}p{2.3cm} >{\raggedright\arraybackslash}X@{}}
+\headrow \thd{va} & \thd{perm} & \thd{Bit} & \thd{Nội dung} & \thd{Giải thích} \\
+\cc{0x0} & \cc{0x5B} & V R X U A & Text và rodata & Mã của \cc{pgtbltest}, \cc{printf}, \cc{malloc}, \cc{ulib} và hằng số (bảng \cc{digits} của \cc{printf}). User đọc và thực thi được; \cc{W=0} nên lệnh ghi gây page fault, chương trình không tự sửa mã của mình. \cc{A=1} vì CPU đã fetch lệnh, \cc{D=0} vì trang chưa bị ghi. \\
+\rowcolor{rowalt}
+\cc{0x1000} & \cc{0x17} & V R W U & Data và bss & Biến toàn cục \cc{testname}, \cc{freep} và \cc{base} của \cc{malloc}. Đọc và ghi được, \cc{X=0} nên dữ liệu không chạy được như mã. \cc{A=D=0}: lúc in, chương trình chưa dùng biến nào trong số này (\cc{testname} được gán ở \cc{pgaccess\_test}, \cc{freep} ở lần \cc{malloc} đầu tiên). \\
+\cc{0x2000} & \cc{0x07} & V R W & Guard page & \cc{exec()} cấp trang này như trang thường rồi \cc{uvmclear()} xóa \cc{PTE\_U}. User truy cập là page fault, nên stack tràn thì process bị kill thay vì ghi đè lên trang data. \cc{walkaddr()} cũng từ chối trang thiếu \cc{PTE\_U}, nên \cc{copyin}/\cc{copyout} không dùng được nó. \\
+\rowcolor{rowalt}
+\cc{0x3000} & \cc{0xD7} & V R W U A D & User stack & Một trang (\cc{USERSTACK = 1}); \cc{exec()} đặt chuỗi \cc{argv} và mảng \cc{argv} ở đỉnh, \cc{sp} đi xuống dần về guard page. \cc{A=D=1} vì mỗi lời gọi hàm đọc và ghi stack frame. \\
+\cc{0x4000} đến \cc{0x9000} (6 dòng) & \cc{0x0} & V=0 & Chưa map & Heap sẽ mọc từ \cc{p->sz = 0x4000} khi gọi \cc{sbrk}; lúc này \cc{pgtbltest} chưa \cc{malloc}. Slot PTE có tồn tại (cùng trang page table mức 0 phủ 0 đến \cc{0x1FFFFF}) nhưng bằng 0. Truy cập vào đây gây page fault và \cc{vmfault()} không cấp trang vì va $\ge$ \cc{p->sz}. \\
+\rowcolor{rowalt}
+\cc{0x3FFFFF6000} đến \cc{0x3FFFFFC000} (7 dòng) & \cc{0x0} & V=0 & Chưa map & Khoảng trống giữa heap và các trang ở đỉnh không gian địa chỉ. Kernel stack không nằm ở đây; chúng chỉ có trong kernel page table. \\
+\cc{0x3FFFFFD000} & \cc{0x0} & V=0 & \cc{USYSCALL} & \cc{USYSCALL = TRAPFRAME - PGSIZE}. Chưa có Task 4 nên trang chưa được map, và \cc{ugetpid\_test} lỗi với \cc{stval=0x3fffffd000}. Task 4 map trang này với \cc{V|R|U} (\cc{0x13}, thêm \cc{A} khi đã đọc), chứa \cc{struct usyscall}. \\
+\rowcolor{rowalt}
+\cc{0x3FFFFFE000} & \cc{0xC7} & V R W A D & Trapframe & \cc{p->trapframe}. \cc{U=0}: user không đọc, không sửa được. Chỉ mã trampoline ở supervisor mode dùng nó khi \cc{satp} còn là page table của user: \cc{uservec} lưu 31 thanh ghi vào đây, \cc{userret} nạp lại; vì vậy \cc{A=D=1}. Trang vật lý do \cc{allocproc()} cấp lúc \cc{fork}, trước \cc{exec} khá lâu, nên địa chỉ nằm xa các trang khác. \\
+\cc{0x3FFFFFF000} & \cc{0x4B} & V R X A & Trampoline & \cc{uservec}/\cc{userret}. \cc{pa 0x80007000} là symbol \cc{trampoline} trong text của kernel (\cc{kernel/kernel.sym}). Trang này được map ở cùng địa chỉ ảo trong kernel page table và trong mọi user page table, nên mã vẫn chạy tiếp khi đổi \cc{satp}. Có \cc{R}, \cc{X}, không có \cc{W}; \cc{U=0} nên chỉ supervisor thực thi được. \cc{A=1} do fetch lệnh. \\
+\bottomrule
+\end{tabularx}
+\caption{Giải mã 20 dòng của \cc{print\_pgtbl}. Các dòng có \cc{pte 0x0} được gộp theo vùng.}\label{tab:q1}
+\end{table}
+
+\textbf{Địa chỉ vật lý không liên tiếp.} \cc{kalloc()} lấy trang từ một free list kiểu LIFO mà \cc{freerange()} đã đẩy vào theo thứ tự địa chỉ tăng dần, nên trang được cấp từ cuối RAM đi xuống: \cc{0x87F22000}, \cc{0x87F1F000}, \cc{0x87F1E000}, \cc{0x87F1D000}. Hai trang \cc{0x87F21000} và \cc{0x87F20000} nằm giữa text và data là trang page table mức 1 và mức 0 mà \cc{walk()} cấp khi map trang text; chúng xuất hiện dưới dạng PTE không phải lá trong output của \cc{vmprint} (mục~\ref{sec:task2}).
+
+% =================================================================== 4
+\section{Task 2: Walk and print a page table}\label{sec:task2}
+
+\subsection{Thiết kế}
+\cc{vmprint()} in dòng tiêu đề rồi gọi hàm đệ quy \cc{vmprint\_level(pagetable, level, va)} cho trang gốc (mức 2, va 0). Hàm này duyệt 512 PTE theo thứ tự chỉ số, giống \cc{freewalk()}:
+\begin{itemize}
+  \item PTE có \cc{V=0} bị bỏ qua, đúng yêu cầu không in PTE không hợp lệ.
+  \item Địa chỉ ảo của PTE thứ \cc{i} là \cc{va + (i << PXSHIFT(level))}: mỗi PTE phủ 1 GB ở mức 2, 2 MB ở mức 1 và 4 KB ở mức 0. Với \cc{i = 255} ở mức gốc ta được \cc{0x3fc0000000}, khớp với regex của grader.
+  \item PTE lá (có \cc{R}, \cc{W} hoặc \cc{X}) được in kèm quyền theo thứ tự \cc{R W X U}. PTE còn lại trỏ tới trang page table mức dưới nên hàm đệ quy vào đó với \cc{level - 1}.
+\end{itemize}
+Hàm nhận ra lá bằng các bit \cc{R}, \cc{W}, \cc{X} ở mọi mức. Với superpage của Task 5 (lá ở mức 1), hàm in một dòng có quyền và không đệ quy vào vùng nhớ 2 MB như thể đó là page table, nên Task 5 chỉ cần thêm dấu hiệu superpage. Mỗi dòng được in bằng một lời gọi \cc{printk}, nên output của CPU khác không chen vào giữa dòng. Phần thụt lề lấy từ bảng \cc{indent[level]}, mỗi mức sâu thêm một chuỗi \cc{" .."}.
+
+\begin{lstlisting}
+static void
+vmprint_level(pagetable_t pagetable, int level, uint64 va)
+{
+  static char *indent[] = {" .. .. ..", " .. ..", " .."};
+  for (int i = 0; i < 512; i++) {
+    pte_t pte = pagetable[i];
+    if ((pte & PTE_V) == 0)
+      continue;
+    uint64 a = va + ((uint64)i << PXSHIFT(level)); // 1 GB, 2 MB or 4 KB
+    if (pte & (PTE_R | PTE_W | PTE_X)) {          // a leaf
+      char perm[5], *f = perm;                     // "RWXU" subset
+      if (pte & PTE_R) *f++ = 'R';   /* ... W, X, U the same way ... */
+      *f = 0;
+      printk("%s%p: pte %p pa %p %s\n", indent[level], (void *)a, (void *)pte,
+             (void *)PTE2PA(pte), perm);
+    } else {                                       // next-level table
+      printk("%s%p: pte %p pa %p\n", indent[level], (void *)a, (void *)pte,
+             (void *)PTE2PA(pte));
+      if (level > 0)
+        vmprint_level((pagetable_t)PTE2PA(pte), level - 1, a);
+    }
+  }
+}
+\end{lstlisting}
+\vspace{-2pt}
+\srcname{kernel/vm.c (rút gọn phần dựng chuỗi quyền)}
+
+Hai chi tiết tìm ra khi chạy thử. Trong PDF của đề, dấu cách đầu dòng bị mất, nhưng \cc{grade-lab-pgtbl} so khớp \cc{"\^{} \textbackslash.\textbackslash.0x..."}, tức mỗi dòng PTE phải bắt đầu bằng \cc{" .."}. Ngoài ra \cc{printk} được khai báo với thuộc tính \cc{format(printf)}, nên truyền \cc{uint64} cho \cc{\%p} bị \cc{-Werror=format} chặn; các đối số được ép sang \cc{void *}. Nhóm cũng đổi kiểu trả về của \cc{sys\_vmprint} và \cc{sys\_pgaccess} từ \cc{int} sang \cc{uint64} cho khớp với khai báo \cc{extern uint64} trong \cc{kernel/syscall.c}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.84\linewidth]{vmprint.png}
+\caption{Output thật của \cc{vmprint\_test}, \cc{pgaccess\_test} và lỗi của \cc{ugetpid\_test} (Task 4 chưa làm).}\label{fig:vmprint}
+\end{figure}
+
+\subsection{Q2. Các trang lá trong output của \texttt{vmprint}}
+
+Cây có hai nhánh từ trang gốc \cc{0x87f25000}. Chỉ số 0 trỏ tới trang mức 1 \cc{0x87f21000}, chỉ số 0 của trang này trỏ tới trang mức 0 \cc{0x87f20000} chứa 4 lá cho va \cc{0x0} đến \cc{0x3fff}. Chỉ số 255 trỏ tới trang mức 1 \cc{0x87f24000}, chỉ số 511 trỏ tới trang mức 0 \cc{0x87f23000} chứa 2 lá ở chỉ số 510 và 511, vì \cc{0x3fffffe000} = \cc{255<<30 | 511<<21 | 510<<12}. Các PTE không phải lá có cờ \cc{0x01}, chỉ có \cc{V}.
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\linewidth}{@{}l c >{\raggedright\arraybackslash}p{2.0cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\headrow \thd{va} & \thd{Quyền} & \thd{Nội dung} & \thd{Cho phép} & \thd{Không cho phép} \\
+\cc{0x0000000000000000} & RXU & Text, rodata & User đọc và fetch lệnh & Ghi (store page fault), nên mã và hằng số không bị sửa \\
+\rowcolor{rowalt}
+\cc{0x0000000000001000} & RWU & Data, bss & User đọc và ghi & Thực thi (\cc{X=0}), nên byte ghi vào dữ liệu toàn cục không chạy được như mã \\
+\cc{0x0000000000002000} & RW & Guard page & Không gì cả với user, vì thiếu \cc{U} & Mọi lần đọc, ghi, fetch của user; tràn stack bị bắt tại đây thay vì đè lên data \\
+\rowcolor{rowalt}
+\cc{0x0000000000003000} & RWU & User stack & User đọc và ghi & Thực thi \\
+\cc{0x0000003fffffe000} & RW & Trapframe & Supervisor đọc và ghi & Mọi truy cập của user (\cc{U=0}), nên user không giả được giá trị thanh ghi mà kernel sẽ nạp lại; thực thi \\
+\rowcolor{rowalt}
+\cc{0x0000003ffffff000} & RX & Trampoline & Supervisor đọc và thực thi & Ghi; user nhảy vào (\cc{U=0}) \\
+\bottomrule
+\end{tabularx}
+\caption{Sáu trang lá trong output của \cc{vmprint}.}\label{tab:q2}
+\end{table}
+
+\textbf{Liên hệ với Task 1.} Hai chương trình đọc cùng một page table của cùng process, nên mỗi lá của \cc{vmprint} có đúng \cc{pte} và \cc{pa} của một trong sáu dòng khác 0 của \cc{print\_pgtbl} (va \cc{0x0}, \cc{0x1000}, \cc{0x2000}, \cc{0x3000}, \cc{0x3FFFFFE000}, \cc{0x3FFFFFF000}). Mười bốn dòng còn lại của \cc{print\_pgtbl} có \cc{pte 0}, là các PTE không hợp lệ mà \cc{vmprint} bỏ qua. \cc{print\_pgtbl} chỉ lấy mẫu 20 địa chỉ và chỉ thấy PTE mức 0, nhưng in đủ 10 bit cờ, kể cả \cc{A} và \cc{D}. \cc{vmprint} đi hết cây nên thấy thêm 4 PTE trỏ tới trang page table, và chỉ giải mã \cc{R}, \cc{W}, \cc{X}, \cc{U}. So với Hình 3.4 của sách xv6~\ref{ref:book}, process này có đủ text, data, guard page, stack, trapframe, trampoline nhưng chưa có trang heap nào. Sau Task 4, \cc{vmprint} có thêm lá \cc{0x0000003fffffd000} với quyền \cc{RU}: trang \cc{USYSCALL}, user chỉ đọc được.
+
+% =================================================================== 5
+\section{Task 3: Detect which pages have been accessed}\label{sec:task3}
+
+\subsection{Thiết kế}
+\cc{pgaccess(base, npages, mask)} nhận địa chỉ đầu, số trang và địa chỉ buffer kết quả. Bit \cc{i} của bitmask (byte \cc{i/8}, bit \cc{i\%8}) ứng với trang thứ \cc{i}, trang đầu là bit thấp nhất. \cc{PTE\_A} là bit 6 theo đặc tả Sv39~\ref{ref:priv}; nhóm định nghĩa nó trong \cc{kernel/riscv.h} cùng \cc{PTE\_D} (bit 7). \cc{sys\_pgaccess()} làm như sau:
+\begin{enumerate}
+  \item Đọc đối số bằng \cc{argaddr}/\cc{argint}. Từ chối \cc{npages} $\le 0$ hoặc lớn hơn \cc{PGACCESS\_MAX = 4096}. Làm tròn \cc{base} xuống đầu trang, vì con trỏ \cc{malloc} trả về không căn trang (nằm sau header 16 byte). Từ chối khoảng địa chỉ vượt \cc{MAXVA}, vì \cc{walk()} gọi \cc{panic} khi \cc{va >= MAXVA}.
+  \item Lượt 1: với mỗi trang, \cc{walk(p->pagetable, va, 0)} phải trả về PTE có \cc{V} và \cc{U}; thiếu một trong hai thì trả $-1$. Điều kiện \cc{U} loại guard page, trapframe và trampoline. Nếu PTE có \cc{A} thì bật bit tương ứng trong mảng \cc{mask} trên kernel stack. Lượt này chưa sửa gì.
+  \item Lượt 2: \cc{copyout} đúng \cc{(npages + 7) / 8} byte ra buffer user. Test truyền \cc{\&abits} kiểu \cc{unsigned int} (4 byte) cho 32 trang, nên ghi một \cc{uint64} sẽ đè lên stack của user. \cc{copyout} trả lỗi nếu buffer không được map, nằm trên \cc{p->sz}, ở địa chỉ kernel, hoặc thuộc trang chỉ đọc.
+  \item Lượt 3: chỉ khi \cc{copyout} thành công mới xóa \cc{PTE\_A} của các trang đã báo, nên lần gọi sau chỉ thấy truy cập mới. Một lần gọi thất bại không làm mất thông tin.
+\end{enumerate}
+
+\begin{lstlisting}
+  if (npages <= 0 || npages > PGACCESS_MAX)
+    return -1;
+  base = PGROUNDDOWN(base);
+  if (base >= MAXVA || npages > (MAXVA - base) / PGSIZE)  // walk() panics
+    return -1;
+  int nbytes = (npages + 7) / 8;
+  memset(mask, 0, nbytes);
+  for (int i = 0; i < npages; i++) {                      // pass 1
+    pte_t *pte = walk(p->pagetable, base + (uint64)i * PGSIZE, 0);
+    if (pte == 0 || (*pte & PTE_V) == 0 || (*pte & PTE_U) == 0)
+      return -1;
+    if (*pte & PTE_A)
+      mask[i / 8] |= 1 << (i % 8);
+  }
+  if (copyout(p->pagetable, p->sz, umask, (char *)mask, nbytes) < 0)
+    return -1;                                            // pass 2
+  for (int i = 0; i < npages; i++) {                      // pass 3
+    if (mask[i / 8] & (1 << (i % 8))) {
+      pte_t *pte = walk(p->pagetable, base + (uint64)i * PGSIZE, 0);
+      *pte &= ~PTE_A;
+    }
+  }
+  return 0;
+\end{lstlisting}
+\vspace{-2pt}
+\srcname{kernel/sysproc.c, sys\_pgaccess() (bỏ phần đọc đối số)}
+
+\textbf{Giới hạn 4096 trang.} Bitmask cho 4096 trang (16 MB) là 512 byte, đặt được trên kernel stack 4 KB. Nhóm chọn đúng 4096 vì \cc{pgaccess\_test} gọi hai lần với 4096 trang để kiểm tra trang chưa map và buffer sai; với giới hạn nhỏ hơn, hai lời gọi đó sẽ thất bại vì giới hạn và nhánh kiểm tra thật không được chạy. Lời gọi với 10\,000\,000 trang bị chặn bởi giới hạn.
+
+\textbf{TLB.} Sau khi xóa \cc{PTE\_A}, TLB có thể vẫn giữ bản dịch cũ, và phần cứng chỉ bật lại \cc{A} khi đi lại page table. Không cần gọi \cc{sfence.vma} trong \cc{sys\_pgaccess}: \cc{userret} trong \cc{kernel/trampoline.S} đã chạy \cc{sfence.vma} trước và sau khi nạp lại \cc{satp} của user, nên lần truy cập đầu tiên sau system call đi lại page table và bật lại \cc{A}.
+
+\subsection{Kiểm thử bổ sung}
+\cc{pgtbltest} không kiểm tra hết các yêu cầu của rubric, nên nhóm viết \cc{user/pgaudit.c} (thêm vào \cc{UPROGS} trong \cc{Makefile}) với 23 ca: \cc{npages} bằng 0, âm, bằng 4096, bằng 4097; thứ tự bit và số byte được ghi (9 trang ghi đúng 2 byte, byte thứ ba giữ giá trị canh); đọc cũng bật \cc{A}; bit được xóa sau khi báo; \cc{base} không căn trang; buffer ở trang text chỉ đọc, ở địa chỉ kernel, trên \cc{p->sz}; khoảng trang vượt cuối heap; bit \cc{A} còn nguyên sau các lần gọi lỗi; trang \cc{sbrklazy} chưa chạm tới và sau khi chạm; guard page, trapframe, trampoline; khoảng vượt \cc{MAXVA} và va $= 2^{64} - 1$ (kernel không panic). Cả 23 ca đạt (Hình~\ref{fig:pgaudit}).
+
+\begin{minipage}[t]{0.50\linewidth}
+\vspace{0pt}
+Để chắc các ca này phát hiện được lỗi thật, nhóm build tạm hai phiên bản sai của kernel rồi khôi phục bản đúng:
+\begin{itemize}
+  \item Xóa \cc{PTE\_A} ngay ở lượt 1, trước \cc{copyout}. \cc{pgtbltest} vẫn báo \cc{pgaccess\_test: OK}, còn \cc{pgaudit} báo lỗi ở ca ``A bits survive the failed calls''.
+  \item Bỏ lượt 3, không xóa \cc{PTE\_A}. \cc{pgtbltest} báo \cc{incorrect access bits set}, \cc{pgaudit} báo lỗi 2 ca.
+\end{itemize}
+
+Trang \cc{sbrklazy} chưa được chạm tới không có PTE, nên \cc{pgaccess} trả $-1$ theo đúng câu chữ của đề (trang chưa map). Một bộ thu gom rác có thể muốn coi trang đó là ``chưa truy cập'' (bit 0); nhóm giữ cách hiểu của đề.
+\end{minipage}\hfill
+\begin{minipage}[t]{0.47\linewidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth]{pgaudit.png}
+\captionof{figure}{Output thật của \cc{pgaudit}.}\label{fig:pgaudit}
+\end{minipage}
+
+% =================================================================== 6
+\section{Task 4: Speed up the getpid system call}\label{sec:task4}
+
+\begin{hoangbox}
+Theo mục 7 của đề và rubric T4a, T4b, mục này cần:
+\begin{itemize}
+  \item Ý tưởng thiết kế: vòng đời của trang \cc{USYSCALL} (cấp phát, map, unmap, giải phóng), quyền của PTE và lý do chỉ cho user đọc, xử lý khi cấp phát hoặc map thất bại.
+  \item Các tệp và hàm đã sửa, trích đoạn mã ngắn của phần chính (không dán cả tệp).
+  \item Kết quả: \cc{ugetpid\_test: OK}, \cc{usertests -q} vẫn đạt, không rò trang khi process thoát.
+  \item Q3 (cũng chép vào \cc{answers-pgtbl.txt}).
+\end{itemize}
+Mục 3 và 4 đã nói trước về \cc{USYSCALL}: dòng \cc{0x3FFFFFD000} của \cc{print\_pgtbl} sẽ có \cc{perm 0x13} và \cc{vmprint} sẽ có thêm lá \cc{RU}. Nếu thiết kế cuối dùng quyền khác, cần sửa hai chỗ đó. Ảnh \cc{vmprint.png} nên chụp lại sau khi merge.
+\end{hoangbox}
+
+\textbf{Q3. Những system call nào khác của xv6 có thể nhanh hơn nhờ trang dùng chung này? Bằng cách nào?}
+
+\hoang{câu trả lời Q3}
+
+% =================================================================== 7
+\Needspace{14\baselineskip} % giữ tiêu đề cùng trang với hộp nội dung
+\section{Task 5: Use superpages}\label{sec:task5}
+
+\begin{hoangbox}
+Theo mục 7 của đề và rubric T5a, T5b, mục này cần:
+\begin{itemize}
+  \item Ý tưởng thiết kế: đường map riêng cho kernel (bản sao của \cc{mappages} chỉ \cc{kvmmap} dùng), cách chọn vùng căn 2 MB và dài ít nhất 2 MB, phần đầu và đuôi không căn vẫn dùng trang 4 KB; mapping của user giữ nguyên.
+  \item Các tệp và hàm đã sửa, trích đoạn mã chính.
+  \item Thay đổi trong \cc{vmprint}: \cc{vmprint\_level()} đã in quyền cho lá ở mọi mức và không đệ quy vào lá, nên chỉ cần thêm dấu hiệu superpage ở nhánh lá khi \cc{level > 0}. Kèm ảnh một phần kernel page table có đánh dấu superpage.
+  \item Kết quả \cc{ksuper\_test: OK} và \cc{usertests -q}.
+  \item Q4 (cũng chép vào \cc{answers-pgtbl.txt}), con số phải khớp với \cc{vmprint} và \cc{ksupernpte} của chính bài làm.
+\end{itemize}
+\end{hoangbox}
+
+\textbf{Q4. Lời giải dùng bao nhiêu PTE superpage? Chúng tiết kiệm được bao nhiêu trang page table mức cuối?}
+
+\hoang{câu trả lời Q4}
+
+% =================================================================== 8
+\section{Kiểm thử}\label{sec:test}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l X c c@{}}
+\headrow \thd{Test của \cc{grade-lab-pgtbl}} & \thd{Nội dung} & \thd{Hiện tại} & \thd{Sau khi merge} \\
+\cc{pgtbltest: vmprint\_test} & 11 regex về thụt lề, va và quyền (mục~\ref{sec:task2}) & 10/10 & \hoang{} \\
+\rowcolor{rowalt}
+\cc{pgtbltest: pgaccess} & \cc{pgaccess\_test: OK} & 10/10 & \hoang{} \\
+\cc{pgtbltest: ugetpid} & \cc{ugetpid\_test: OK} & 0/10 & \hoang{} \\
+\rowcolor{rowalt}
+\cc{pgtbltest: superpg} & \cc{ksuper\_test: OK} ($\ge 93$ PTE superpage, $\le 1610$ PTE thường) & 0/10 & \hoang{} \\
+\cc{answers-pgtbl.txt} & Tệp có nội dung (chấm tay phần còn lại) & 5/5 & \hoang{} \\
+\rowcolor{rowalt}
+\cc{usertests} & \cc{usertests -q} in \cc{ALL TESTS PASSED} (test 0 điểm) & đạt & \hoang{} \\
+\cc{time} & \cc{time.txt} chứa một số nguyên & 1/1 & \hoang{} \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Tổng}} & \textbf{26/46} & \hoang{/46} \\
+\bottomrule
+\end{tabularx}
+\caption{Các test của \cc{make grade}. Hai test \cc{ugetpid} và \cc{superpg} thuộc Task 4 và 5.}
+\end{table}
+
+\begin{minipage}[t]{0.41\linewidth}
+\vspace{0pt}
+Với Task 1 đến 3, \cc{make grade} đạt 26/46 (Hình~\ref{fig:grade}). \cc{ugetpid\_test} lỗi vì \cc{USYSCALL} chưa được map, và vì \cc{pgtbltest} dừng ở test lỗi đầu tiên nên \cc{ksuper\_test} chưa chạy. \cc{usertests -q} đạt (\cc{ALL TESTS PASSED} trong \cc{xv6.out}); gradelib chỉ in thời gian chạy cho test 0 điểm khi test đạt. Mã của nhóm biên dịch với \cc{-Wall -Werror} không có cảnh báo; cảnh báo \cc{LOAD segment with RWX permissions} là của linker với kernel gốc.
+
+\begin{hoangbox}
+Thay \cc{images/grade.png} bằng ảnh \cc{make grade} cuối cùng sau khi merge Task 4 và 5, rồi cập nhật bảng trên và con số 26/46 ở đây. Trên máy của Bảo: \cc{python3 scripts/capture\_lab3.py grade} trong xterm/Xvfb (lệnh đầy đủ ở đầu script), cắt ảnh như các ảnh hiện có.
+\end{hoangbox}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.56\linewidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth]{grade.png}
+\captionof{figure}{Toàn bộ output của \cc{make grade} sau Task 1 đến 3 (chạy với \cc{MAKEFLAGS=s} nên không in dòng lệnh build).}\label{fig:grade}
+\end{minipage}
+
+% =================================================================== 9
+\Needspace{14\baselineskip} % giữ tiêu đề cùng trang với bảng khó khăn
+\section{Thảo luận và tự đánh giá}\label{sec:discussion}
+
+\subsection{Khó khăn và cách xử lý}
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{4.6cm} >{\raggedright\arraybackslash}X@{}}
+\headrow \thd{Vấn đề} & \thd{Nguyên nhân và cách xử lý} \\
+Output thật khác ví dụ trong đề (một trang text, data ở \cc{0x1000}, va in đủ 40 bit) & Đọc program header bằng \cc{readelf} và \cc{user/user.ld} để biết trang nào chứa gì, rồi giải thích theo output thật. \\
+\rowcolor{rowalt}
+Định dạng \cc{vmprint} theo PDF không qua grader & PDF làm mất dấu cách đầu dòng; regex của grader cần \cc{" .."}. Đọc \cc{grade-lab-pgtbl} trước khi in. \\
+\cc{\%p} với \cc{uint64} làm build lỗi & \cc{printk} có thuộc tính \cc{format(printf)} và kernel build với \cc{-Werror}; ép đối số sang \cc{void *}. \\
+\rowcolor{rowalt}
+Buffer kết quả của test chỉ có 4 byte & Ghi đúng \cc{(npages+7)/8} byte, không ghi cả \cc{uint64}. \\
+Con trỏ \cc{malloc} không căn trang; \cc{walk()} panic khi \cc{va >= MAXVA} & Làm tròn \cc{base} xuống đầu trang; kiểm tra cả khoảng trang dưới \cc{MAXVA} trước khi gọi \cc{walk()}. \\
+\rowcolor{rowalt}
+Test gốc vẫn đạt khi xóa \cc{PTE\_A} trước \cc{copyout} & Viết \cc{pgaudit}, xác nhận bằng hai phiên bản kernel sai (mục~\ref{sec:task3}). \\
+\hoang{khó khăn ở Task 4, 5} & \hoang{} \\
+\bottomrule
+\end{tabularx}
+\caption{Các khó khăn gặp phải.}
+\end{table}
+
+\subsection{Hạn chế}
+\begin{itemize}
+  \item Mỗi lời gọi \cc{pgaccess} quét tối đa 4096 trang (16 MB); chương trình cần quét nhiều hơn phải gọi nhiều lần.
+  \item Mỗi trang được \cc{walk()} hai lần nếu có bit \cc{A} (lượt 1 và lượt 3). Lưu con trỏ PTE để tránh việc này cần 32 KB cho 4096 trang, không đặt được trên kernel stack.
+  \item Trang \cc{sbrklazy} chưa được chạm tới làm \cc{pgaccess} trả $-1$ (mục~\ref{sec:task3}).
+  \item \hoang{hạn chế của Task 4, 5}
+\end{itemize}
+
+\subsection{Tự đánh giá theo rubric}
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l c l >{\raggedright\arraybackslash}X@{}}
+\headrow \thd{Hạng mục} & \thd{Điểm} & \thd{Mức} & \thd{Minh chứng} \\
+T1. Page table của user (Q1) & 1.0 & Xuất sắc & 20 dòng được giải mã (Bảng~\ref{tab:q1}): nội dung, mọi bit quyền kể cả \cc{A}, \cc{D}; đối chiếu với \cc{readelf}. \\
+\rowcolor{rowalt}
+T2a. Mã \cc{vmprint} & 1.0 & Xuất sắc & Đạt \cc{vmprint\_test}; bỏ PTE không hợp lệ; đệ quy, nhận lá theo bit quyền. \\
+T2b. Q2 & 0.5 & Xuất sắc & Sáu lá, quyền cho phép và không cho phép, liên hệ với Task 1 (Bảng~\ref{tab:q2}). \\
+\rowcolor{rowalt}
+T3. \cc{pgaccess} & 2.0 & Xuất sắc & Đạt \cc{pgaccess}; $-1$ với trang chưa map và buffer sai; \cc{PTE\_A} đúng bit 6, xóa sau khi báo; dùng \cc{copyout}; giới hạn 4096 trang; 23/23 ca của \cc{pgaudit}. \\
+T4a. Trang \cc{USYSCALL} & 1.25 & \hoang{} & \hoang{} \\
+\rowcolor{rowalt}
+T4b. Q3 & 0.25 & \hoang{} & \hoang{} \\
+T5a. Superpage & 2.0 & \hoang{} & \hoang{} \\
+\rowcolor{rowalt}
+T5b. Q4 & 0.5 & \hoang{} & \hoang{} \\
+Mã, git, \cc{time.txt} & 0.5 & \hoang{} & Mã theo phong cách xv6, có chú thích ở phần chính; \cc{time.txt} = 10 (2 giờ cho mỗi task). \hoang{lịch sử commit} \\
+\rowcolor{rowalt}
+Báo cáo & 1.0 & \hoang{} & \hoang{số trang sau khi điền, tối đa 10} \\
+\bottomrule
+\end{tabularx}
+\caption{Nhóm tự đánh giá theo rubric của đề. Đây không phải điểm đã được giảng viên xác nhận.}
+\end{table}
+
+% =================================================================== 10
+\section{Tài liệu tham khảo}
+\begin{enumerate}[label={[\arabic*]},leftmargin=2.2em,itemsep=3pt,before=\raggedright]
+  \item\label{ref:cs333} CS333 Hệ điều hành, \emph{Lab 3: Page Tables} (đề bài, yêu cầu nộp bài và rubric), 2026.
+  \item\label{ref:mit} MIT 6.1810, \emph{Lab: page tables}, Fall 2026. \url{https://pdos.csail.mit.edu/6.828/2026/labs/pgtbl.html}
+  \item\label{ref:book} R. Cox, M. F. Kaashoek, R. Morris, \emph{xv6: a simple, Unix-like teaching operating system (RISC-V)}, chương 3 (Hình 3.2 và 3.4). \url{https://mit-pdos.github.io/xv6-riscv-book/}
+  \item\label{ref:priv} \emph{The RISC-V Instruction Set Manual, Volume II: Privileged Architecture}, phần Sv39: định dạng PTE, bit \cc{A}/\cc{D}, megapage. \url{https://github.com/riscv/riscv-isa-manual}
+  \item\label{ref:src} Mã nguồn xv6-labs-2026, nhánh \cc{pgtbl}: \cc{kernel/\{vm,exec,proc,kalloc,stats,sysproc\}.c}, \cc{kernel/trampoline.S}, \cc{kernel/memlayout.h}, \cc{kernel/riscv.h}, \cc{user/\{pgtbltest,umalloc\}.c}, \cc{user/user.ld}.
+  \item Công cụ AI. Claude Code (Anthropic) được dùng cho Task 1 đến 3: đọc đề và mã nguồn xv6, viết mã \cc{vmprint}, \cc{pgaccess} và chương trình \cc{pgaudit}, chạy thử và chụp ảnh minh chứng, soạn câu trả lời Q1, Q2 và báo cáo. \hoang{công cụ AI dùng cho Task 4, 5 và mục đích}. Nhóm chịu trách nhiệm về toàn bộ nội dung bài nộp.
+\end{enumerate}
+
+\end{document}
