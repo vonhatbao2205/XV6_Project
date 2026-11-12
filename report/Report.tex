@@ -1,6 +1,5 @@
 % Biên dịch: latexmk -xelatex Report.tex   (Overleaf: Compiler = XeLaTeX)
 % Ảnh chụp terminal và logo trường nằm trong images/.
-% Các hộp màu cam (hoangbox, \hoang{...}) là phần Task 4 và 5 của Hoàng; xóa hộp sau khi điền.
 \documentclass[10pt,a4paper]{article}
 \usepackage[left=2cm,right=1.8cm,top=2.1cm,bottom=1.9cm,headheight=14pt,headsep=12pt,footskip=22pt]{geometry}
 \usepackage{fontspec}
@@ -29,7 +28,6 @@
 \definecolor{rowalt}{HTML}{F4F6FA}
 \definecolor{cmt}{HTML}{3B7A57}
 \definecolor{str}{HTML}{9A3B26}
-\definecolor{todo}{HTML}{B54708}
 \hypersetup{colorlinks=true,linkcolor=black,urlcolor=hcmus,
   pdftitle={Báo cáo Lab 3: Page Tables},
   pdfauthor={Võ Nhất Bảo, Phạm Lê Huy Hoàng}}
@@ -70,12 +68,6 @@
 \newcommand{\cc}[1]{\texttt{#1}}
 \newcommand{\thd}[1]{\textcolor{white}{\textbf{#1}}}
 \newcommand{\headrow}{\rowcolor{hcmus}}
-% Phần Hoàng cần điền: \hoang{...} trong bảng, hoangbox cho cả đoạn.
-\newcommand{\hoang}[1]{\textcolor{todo}{\textit{[Hoàng: #1]}}}
-\newtcolorbox{hoangbox}{colback=todo!5,colframe=todo,boxrule=0.6pt,arc=0pt,outer arc=0pt,
-  left=5pt,right=5pt,top=2pt,bottom=2pt,fontupper=\small,
-  title={\small Phần của Phạm Lê Huy Hoàng, cần điền},fonttitle=\bfseries,
-  coltitle=white,colbacktitle=todo,toptitle=1pt,bottomtitle=1pt}
 \fvset{fontsize=\small}
 
 \begin{document}
@@ -136,7 +128,7 @@
 \headrow \thd{STT} & \thd{MSSV} & \thd{Họ và tên} & \thd{Công việc đảm nhận} & \thd{Đóng góp} \\
 1 & 24120166 & Võ Nhất Bảo & Task 1: giải mã page table của \cc{pgtbltest} (Q1). Task 2: \cc{vmprint()} và Q2. Task 3: system call \cc{pgaccess()}, định nghĩa \cc{PTE\_A}, chương trình kiểm thử bổ sung \cc{user/pgaudit.c}. Ảnh minh chứng và các mục 1 đến 5 của báo cáo. & 50\% \\
 \rowcolor{rowalt}
-2 & 24120182 & Phạm Lê Huy Hoàng & Task 4: trang \cc{USYSCALL} và \cc{ugetpid()}, Q3. Task 5: superpage cho kernel page table, Q4. \hoang{bổ sung chi tiết} & 50\% \\
+2 & 24120182 & Phạm Lê Huy Hoàng & Task 4: trang \cc{USYSCALL} và \cc{ugetpid()}, Q3. Task 5: superpage cho kernel page table, dấu superpage trong \cc{vmprint}, \cc{kpgstat}, Q4. Thí nghiệm E1--E8, mục 6 và 7. & 50\% \\
 \multicolumn{3}{@{}l}{\textbf{Công việc chung}} & Chạy autograder, rà soát chéo mã nguồn, \cc{time.txt}, báo cáo, đóng gói bài nộp. & Cả hai \\
 \bottomrule
 \end{tabularx}
@@ -152,12 +144,12 @@
 2 & \cc{vmprint} (Q2) & \cc{kernel/vm.c}, \cc{kernel/sysproc.c} & 100\% & 10/10 \\
 3 & \cc{pgaccess} & \cc{kernel/riscv.h}, \cc{kernel/sysproc.c}, \cc{user/pgaudit.c}, \cc{Makefile} & 100\% & 10/10 \\
 \rowcolor{rowalt}
-4 & Trang \cc{USYSCALL} (Q3) & \hoang{tệp} & \hoang{\%} & \hoang{/10} \\
-5 & Superpage (Q4) & \hoang{tệp} & \hoang{\%} & \hoang{/10} \\
+4 & Trang \cc{USYSCALL} (Q3) & \cc{kernel/proc.c}, \cc{kernel/proc.h} & 100\% & 10/10 \\
+5 & Superpage (Q4) & \cc{kernel/vm.c}, \cc{kernel/main.c}, \cc{user/kpgstat.c}, \cc{Makefile} & 100\% & 10/10 \\
 \rowcolor{rowalt}
 & Câu trả lời, số giờ & \cc{answers-pgtbl.txt}, \cc{time.txt} (10 giờ) & 100\% & 5/5, 1/1 \\
 \midrule
-\multicolumn{4}{@{}l}{\textbf{Tổng \cc{make grade}} (hiện tại 26/46, chưa có Task 4 và 5)} & \hoang{/46} \\
+\multicolumn{4}{@{}l}{\textbf{Tổng \cc{make grade}}} & \textbf{46/46} \\
 \bottomrule
 \end{tabularx}
 \caption{Mức hoàn thành tự đánh giá và điểm của \cc{make grade}. Test \cc{answers-pgtbl.txt} chỉ kiểm tra tệp có nội dung; câu trả lời được chấm tay.}
@@ -167,6 +159,8 @@
 \section{Môi trường và kiến thức nền}
 
 \textbf{Môi trường.} NixOS 26.05 (x86-64). \cc{shell.nix} của nhóm cung cấp \cc{riscv64-none-elf-gcc} 15.3.0, Binutils 2.46, QEMU 10.2.4 (3 CPU), Python 3 và \cc{pexpect}. Mã nguồn lấy từ \cc{git://g.csail.mit.edu/xv6-labs-2026}, nhánh \cc{pgtbl}, commit gốc \cc{d1eb62f}, \cc{conf/lab.mk} đặt \cc{LAB=pgtbl}. Nhóm không sửa \cc{grade-lab-pgtbl}, \cc{gradelib.py} và \cc{user/pgtbltest.c}. Ảnh chụp trong báo cáo do script \cc{scripts/capture\_lab3.py} (nằm ngoài repo) tạo: script chạy xv6 hoặc \cc{make grade} thật trong xterm rồi chụp cửa sổ, log văn bản lưu cạnh ảnh.
+
+Task 4, 5 được làm và kiểm tra trên WSL Ubuntu 24.04 (gcc 13.3.0, QEMU 8.2.2); Hình \ref{fig:task4}--\ref{fig:grade} được render từ log thật của máy này. Ở đó text của \cc{pgtbltest} dài hai trang nên các va thấp lệch một trang so với Hình~\ref{fig:print}.
 
 \textbf{Sv39.} Xv6 dùng sơ đồ Sv39 của RISC-V~\ref{ref:book}\ref{ref:priv}. Địa chỉ ảo dùng 39 bit: ba chỉ số 9 bit (bit 38 đến 30, 29 đến 21, 20 đến 12) chọn PTE ở ba mức page table, 12 bit cuối là offset trong trang. Mỗi trang page table chứa 512 PTE 64 bit. Một PTE có \cc{V=1} và \cc{R=W=X=0} trỏ xuống trang page table mức dưới; PTE có ít nhất một trong \cc{R}, \cc{W}, \cc{X} là PTE lá. Lá ở mức 0 map một trang 4 KB, lá ở mức 1 map 2 MB (megapage, dùng ở Task 5). Xv6 chỉ dùng nửa dưới không gian địa chỉ: \cc{MAXVA} $= 2^{38}$ = \cc{0x4000000000}.
 
@@ -378,41 +372,106 @@ Trang \cc{sbrklazy} chưa được chạm tới không có PTE, nên \cc{pgacces
 \end{minipage}
 
 % =================================================================== 6
+\Needspace{12\baselineskip} % giữ tiêu đề cùng trang với phần thiết kế
 \section{Task 4: Speed up the getpid system call}\label{sec:task4}
 
-\begin{hoangbox}
-Theo mục 7 của đề và rubric T4a, T4b, mục này cần:
+\subsection{Thiết kế}
+\cc{ugetpid()} (có sẵn trong \cc{user/ulib.c}) chỉ đọc \cc{((struct usyscall *)USYSCALL)->pid}: một lệnh load, không vào kernel. Kernel đặt sẵn trang chứa pid ở \cc{USYSCALL} trong page table của mọi process; theo gợi ý của đề, trang đi theo đúng vòng đời của trapframe, struct proc có thêm trường \cc{usyscall} (\cc{kernel/proc.h}).
+
+\begin{lstlisting}
+// allocproc(): allocate the page, clear it, store the pid
+if ((p->usyscall = (struct usyscall *)kalloc()) == 0) {
+  freeproc(p); release(&p->lock); return 0;           // like the trapframe
+}
+memset(p->usyscall, 0, PGSIZE);
+p->usyscall->pid = p->pid;
+// proc_pagetable(): map it below TRAPFRAME, readable by user code only
+if (mappages(pagetable, USYSCALL, PGSIZE, (uint64)(p->usyscall), PTE_R | PTE_U) < 0)
+  { /* unmap TRAPFRAME and TRAMPOLINE, uvmfree(pagetable, 0), return 0 */ }
+uvmunmap(pagetable, USYSCALL, 1, 0);                  // proc_freepagetable(): do_free = 0
+if (p->usyscall) kfree((void *)p->usyscall);          // freeproc()
+\end{lstlisting}
+\vspace{-2pt}
+\srcname{kernel/proc.c (rút gọn; các đoạn nằm trong \#ifdef LAB\_PGTBL)}
+
 \begin{itemize}
-  \item Ý tưởng thiết kế: vòng đời của trang \cc{USYSCALL} (cấp phát, map, unmap, giải phóng), quyền của PTE và lý do chỉ cho user đọc, xử lý khi cấp phát hoặc map thất bại.
-  \item Các tệp và hàm đã sửa, trích đoạn mã ngắn của phần chính (không dán cả tệp).
-  \item Kết quả: \cc{ugetpid\_test: OK}, \cc{usertests -q} vẫn đạt, không rò trang khi process thoát.
-  \item Q3 (cũng chép vào \cc{answers-pgtbl.txt}).
+  \item \textbf{Quyền \cc{PTE\_R | PTE\_U}} (\cc{perm 0x13}): không có \cc{W}, \cc{X}, nên user ghi vào trang là store page fault.
+  \item \textbf{Unmap mà không free.} \cc{exec()} tạo page table mới bằng \cc{proc\_pagetable(p)}, map lại đúng \cc{p->usyscall}, rồi mới \cc{proc\_freepagetable()} page table cũ; free ở đây thì page table mới trỏ vào trang đã free (E3, Bảng~\ref{tab:exp}). Trang thuộc về struct proc, nên \cc{freeproc()} free nó.
+  \item \textbf{Ghi pid một lần}: pid không đổi trong đời process (\cc{exec()} giữ struct proc, \cc{fork()} gọi \cc{allocproc()} cho con). User đọc được cả trang, nên \cc{memset} cho phần còn lại giá trị xác định.
 \end{itemize}
-Mục 3 và 4 đã nói trước về \cc{USYSCALL}: dòng \cc{0x3FFFFFD000} của \cc{print\_pgtbl} sẽ có \cc{perm 0x13} và \cc{vmprint} sẽ có thêm lá \cc{RU}. Nếu thiết kế cuối dùng quyền khác, cần sửa hai chỗ đó. Ảnh \cc{vmprint.png} nên chụp lại sau khi merge.
-\end{hoangbox}
 
-\textbf{Q3. Những system call nào khác của xv6 có thể nhanh hơn nhờ trang dùng chung này? Bằng cách nào?}
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=0.78\linewidth]{task4.png}
+\caption{Output của \cc{pgtbltest} sau Task 4 (trích, \cc{[...]} là dòng được lược). \cc{USYSCALL} có \cc{perm 0x13} = \cc{V R U} và một lá \cc{RU} trong \cc{vmprint}, đúng như dự đoán ở Q1, Q2. \cc{ugetpid\_test} so \cc{getpid()} với \cc{ugetpid()} ở process cha và 64 process con.}\label{fig:task4}
+\end{figure}
 
-\hoang{câu trả lời Q3}
+\textbf{Không rò trang.} \cc{usertests -q} đếm trang trống trước và sau khi chạy (\cc{countfree()}) và báo \cc{lost some free pages} nếu thiếu; với Task 4 nó in \cc{ALL TESTS PASSED}. Bỏ \cc{kfree(p->usyscall)} thì chính kiểm tra này báo lỗi (E1).
+
+\subsection{Q3. System call nào khác có thể nhanh hơn nhờ trang dùng chung?}
+Chỉ những lời gọi \emph{chỉ đọc} một giá trị mà kernel giữ được bản sao luôn đúng trong trang. \cc{fork}, \cc{exit}, \cc{wait}, \cc{kill}, \cc{read}, \cc{write}, \cc{open}, \cc{exec}, \cc{pipe}, \cc{sbrk(n)} với $n \ne 0$ đổi trạng thái kernel nên vẫn phải trap. Ngoài \cc{getpid}, xv6 có hai lời gọi phù hợp:
+\begin{itemize}
+  \item \textbf{\cc{sbrk(0)}} chỉ trả \cc{p->sz}. Thêm \cc{uint64 sz} vào \cc{struct usyscall}; kernel ghi \cc{p->usyscall->sz} mỗi khi \cc{p->sz} đổi (\cc{growproc()}/\cc{sys\_sbrk} cả nhánh lazy, \cc{exec()}, \cc{fork()} cho con). Chỉ chính process đổi \cc{sz} của nó nên bản sao luôn đúng; \cc{sbrk(0)} chỉ còn là một lệnh load.
+  \item \textbf{\cc{uptime()}} chỉ trả biến toàn cục \cc{ticks}. Ghi \cc{ticks} vào trang của từng process mỗi tick tốn $O(\text{NPROC})$; tốt hơn là cấp \emph{một} trang lúc boot, map chỉ đọc (\cc{PTE\_R | PTE\_U}) ở một địa chỉ cố định khác trong mọi user page table, và \cc{clockintr()} ghi \cc{ticks} vào đó cạnh \cc{ticks++} (như vDSO/vvar của Linux). Load một word 32 bit căn lề thấy giá trị cũ hoặc mới; trễ một tick không tệ hơn system call.
+\end{itemize}
 
 % =================================================================== 7
-\Needspace{14\baselineskip} % giữ tiêu đề cùng trang với hộp nội dung
+\Needspace{14\baselineskip}
 \section{Task 5: Use superpages}\label{sec:task5}
 
-\begin{hoangbox}
-Theo mục 7 của đề và rubric T5a, T5b, mục này cần:
+\subsection{Thiết kế}
+Megapage là PTE lá ở mức 1, PPN trỏ tới đầu một vùng vật lý 2 MB căn 2 MB~\ref{ref:priv}. Theo gợi ý của đề, \cc{kvmmap()} gọi \cc{kmappages()}, bản sao của \cc{mappages()} chỉ \cc{kvmmap} dùng; \cc{mappages()}, \cc{uvmalloc()}, \cc{uvmcopy()} của user giữ nguyên, nên user page table không có superpage.
 \begin{itemize}
-  \item Ý tưởng thiết kế: đường map riêng cho kernel (bản sao của \cc{mappages} chỉ \cc{kvmmap} dùng), cách chọn vùng căn 2 MB và dài ít nhất 2 MB, phần đầu và đuôi không căn vẫn dùng trang 4 KB; mapping của user giữ nguyên.
-  \item Các tệp và hàm đã sửa, trích đoạn mã chính.
-  \item Thay đổi trong \cc{vmprint}: \cc{vmprint\_level()} đã in quyền cho lá ở mọi mức và không đệ quy vào lá, nên chỉ cần thêm dấu hiệu superpage ở nhánh lá khi \cc{level > 0}. Kèm ảnh một phần kernel page table có đánh dấu superpage.
-  \item Kết quả \cc{ksuper\_test: OK} và \cc{usertests -q}.
-  \item Q4 (cũng chép vào \cc{answers-pgtbl.txt}), con số phải khớp với \cc{vmprint} và \cc{ksupernpte} của chính bài làm.
+  \item \textbf{Chọn kích thước tại từng địa chỉ.} Nếu \cc{a} và \cc{pa} đều căn 2 MB và vùng còn ít nhất 2 MB thì map một lá mức 1 rồi tiến 2 MB, ngược lại map 4 KB. Phần đầu và đuôi không căn của một vùng tự dùng trang 4 KB. \cc{kwalk1()} trả về PTE mức 1 và chỉ cấp trang mức 1; dùng \cc{walk(..., 1)} sẽ cấp thêm một trang mức 0 vô ích.
+  \item \textbf{Kiểm tra \cc{pa}}: PPN của megapage phải căn 2 MB. Direct map có \cc{pa = va} nên điều kiện này trùng với điều kiện của \cc{va} (E6), nhưng giữ cho hàm đúng với mọi lời gọi. \textbf{Điều kiện ``còn $\ge$ 2 MB''} là bắt buộc: thiếu nó thì trang UART thành megapage và boot panic (E7).
+  \item \textbf{Remap.} PTE đã có \cc{V} thì \cc{panic}. \cc{walk()} của starter trả về luôn lá mức 1 khi gặp megapage, nên map 4 KB chồng lên megapage cũng bị bắt, thay vì coi vùng dữ liệu như một trang page table.
 \end{itemize}
-\end{hoangbox}
 
-\textbf{Q4. Lời giải dùng bao nhiêu PTE superpage? Chúng tiết kiệm được bao nhiêu trang page table mức cuối?}
+\begin{lstlisting}
+while (a < end) {
+  if ((a % SUPERPGSIZE) == 0 && (pa % SUPERPGSIZE) == 0 && end - a >= SUPERPGSIZE) {
+    if ((pte = kwalk1(kpgtbl, a)) == 0)          // level-1 PTE
+      return -1;
+    if (*pte & PTE_V)
+      panic("kmappages: remap");
+    *pte = PA2PTE(pa) | perm | PTE_V;             // one 2 MB leaf
+    a += SUPERPGSIZE; pa += SUPERPGSIZE;
+  } else {
+    /* same as mappages(): walk(kpgtbl, a, 1), check, 4 KB leaf */
+    a += PGSIZE; pa += PGSIZE;
+  }
+}
+\end{lstlisting}
+\vspace{-2pt}
+\srcname{kernel/vm.c, vòng lặp của kmappages() (rút gọn)}
 
-\hoang{câu trả lời Q4}
+\textbf{\cc{vmprint}.} \cc{vmprint\_level()} đã nhận lá ở mọi mức và không đệ quy vào lá, nên chỉ thêm hậu tố \cc{superpage 2MB} (\cc{1GB} ở mức 2) cho lá ở mức trên 0. \cc{vmprint\_test} chỉ in user page table (không có superpage) nên output của nó không đổi; để xem kernel page table, \cc{main()} gọi \cc{vmprint(kernel\_pagetable)} sau \cc{kvminithart()} khi build bằng \cc{make clean; make qemu EXTRAFLAG=-DKVMPRINT}. \cc{user/kpgstat.c} in hai số đếm của \cc{ksupernpte()}.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=0.8\linewidth]{task5.png}
+\caption{Kernel page table do \cc{vmprint} in khi boot với \cc{-DKVMPRINT} (trích, \cc{[...]} là dòng được lược) và output của \cc{kpgstat}.}\label{fig:kvmprint}
+\end{figure}
+
+\subsection{Q4. Bao nhiêu PTE superpage? Tiết kiệm bao nhiêu trang mức cuối?}
+Kernel page table dùng \textbf{95 PTE superpage}: 95 dòng \cc{superpage 2MB} trong output của \cc{vmprint}, khớp với \cc{ksupernpte()} (Hình~\ref{fig:kvmprint}).
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{6.1cm} c >{\raggedright\arraybackslash}X@{}}
+\headrow \thd{Vùng (\cc{kvmmake})} & \thd{Quyền} & \thd{Cách map} \\
+PLIC \cc{0x0c000000}--\cc{0x0fffffff} (64 MB) & RW & 32 superpage \\
+\rowcolor{rowalt}
+RAM \cc{0x80200000}--\cc{0x87ffffff} (126 MB) & RW & 63 superpage \\
+RAM \cc{0x80000000}--\cc{0x801fffff} (2 MB đầu) & RX, RW & 512 trang 4 KB: 8 trang text đến \cc{etext = 0x80008000} rồi 504 trang data (khác quyền; data bắt đầu ở \cc{etext}, không căn 2 MB) \\
+\rowcolor{rowalt}
+UART0, VIRTIO0, trampoline, 64 kernel stack & RW, RX & 67 trang 4 KB \\
+\bottomrule
+\end{tabularx}
+\caption{Kernel page table sau Task 5: 95 superpage và 579 PTE mức 0 (\cc{ksuper\_test} cần $\ge 93$ và $\le 1610$).}\label{tab:kmap}
+\end{table}
+
+Không có superpage, mỗi vùng 2 MB này cần trọn một trang page table mức 0 (512 PTE). Vậy 95 superpage tiết kiệm \textbf{95 trang page table mức cuối} (380 KB) và $95 \times 512 = 48\,640$ PTE: từ 49\,219 xuống 579 PTE mức 0, đúng như \cc{kpgstat} in ra khi cho \cc{kvmmap()} dùng lại \cc{mappages()} (E8). Cả kernel page table giảm từ 102 trang (1 gốc, 3 mức 1, 98 mức 0) xuống 7 (1, 3, 3), và mỗi mục TLB của megapage phủ 2 MB thay vì 4 KB.
 
 % =================================================================== 8
 \section{Kiểm thử}\label{sec:test}
@@ -420,19 +479,19 @@ Theo mục 7 của đề và rubric T5a, T5b, mục này cần:
 \begin{table}[H]
 \centering\small
 \begin{tabularx}{\linewidth}{@{}l X c c@{}}
-\headrow \thd{Test của \cc{grade-lab-pgtbl}} & \thd{Nội dung} & \thd{Hiện tại} & \thd{Sau khi merge} \\
-\cc{pgtbltest: vmprint\_test} & 11 regex về thụt lề, va và quyền (mục~\ref{sec:task2}) & 10/10 & \hoang{} \\
+\headrow \thd{Test của \cc{grade-lab-pgtbl}} & \thd{Nội dung} & \thd{Sau Task 1--3} & \thd{Cuối cùng} \\
+\cc{pgtbltest: vmprint\_test} & 11 regex về thụt lề, va và quyền (mục~\ref{sec:task2}) & 10/10 & 10/10 \\
 \rowcolor{rowalt}
-\cc{pgtbltest: pgaccess} & \cc{pgaccess\_test: OK} & 10/10 & \hoang{} \\
-\cc{pgtbltest: ugetpid} & \cc{ugetpid\_test: OK} & 0/10 & \hoang{} \\
+\cc{pgtbltest: pgaccess} & \cc{pgaccess\_test: OK} & 10/10 & 10/10 \\
+\cc{pgtbltest: ugetpid} & \cc{ugetpid\_test: OK} & 0/10 & 10/10 \\
 \rowcolor{rowalt}
-\cc{pgtbltest: superpg} & \cc{ksuper\_test: OK} ($\ge 93$ PTE superpage, $\le 1610$ PTE thường) & 0/10 & \hoang{} \\
-\cc{answers-pgtbl.txt} & Tệp có nội dung (chấm tay phần còn lại) & 5/5 & \hoang{} \\
+\cc{pgtbltest: superpg} & \cc{ksuper\_test: OK} ($\ge 93$ PTE superpage, $\le 1610$ PTE thường) & 0/10 & 10/10 \\
+\cc{answers-pgtbl.txt} & Tệp có nội dung (chấm tay phần còn lại) & 5/5 & 5/5 \\
 \rowcolor{rowalt}
-\cc{usertests} & \cc{usertests -q} in \cc{ALL TESTS PASSED} (test 0 điểm) & đạt & \hoang{} \\
-\cc{time} & \cc{time.txt} chứa một số nguyên & 1/1 & \hoang{} \\
+\cc{usertests} & \cc{usertests -q} in \cc{ALL TESTS PASSED} (test 0 điểm) & đạt & đạt \\
+\cc{time} & \cc{time.txt} chứa một số nguyên & 1/1 & 1/1 \\
 \midrule
-\multicolumn{2}{@{}l}{\textbf{Tổng}} & \textbf{26/46} & \hoang{/46} \\
+\multicolumn{2}{@{}l}{\textbf{Tổng}} & \textbf{26/46} & \textbf{46/46} \\
 \bottomrule
 \end{tabularx}
 \caption{Các test của \cc{make grade}. Hai test \cc{ugetpid} và \cc{superpg} thuộc Task 4 và 5.}
@@ -440,18 +499,37 @@ Theo mục 7 của đề và rubric T5a, T5b, mục này cần:
 
 \begin{minipage}[t]{0.41\linewidth}
 \vspace{0pt}
-Với Task 1 đến 3, \cc{make grade} đạt 26/46 (Hình~\ref{fig:grade}). \cc{ugetpid\_test} lỗi vì \cc{USYSCALL} chưa được map, và vì \cc{pgtbltest} dừng ở test lỗi đầu tiên nên \cc{ksuper\_test} chưa chạy. \cc{usertests -q} đạt (\cc{ALL TESTS PASSED} trong \cc{xv6.out}); gradelib chỉ in thời gian chạy cho test 0 điểm khi test đạt. Mã của nhóm biên dịch với \cc{-Wall -Werror} không có cảnh báo; cảnh báo \cc{LOAD segment with RWX permissions} là của linker với kernel gốc.
+Sau Task 4 và 5, \cc{make grade} đạt 46/46 (Hình~\ref{fig:grade}); với Task 1 đến 3 là 26/46. \cc{usertests -q} in \cc{ALL TESTS PASSED}, kể cả bước \cc{countfree()} không thấy mất trang; \cc{pgaudit} vẫn đạt 23/23 ca. Mã biên dịch với \cc{-Wall -Werror} không có cảnh báo; cảnh báo \cc{LOAD segment with RWX permissions} là của linker với kernel gốc.
 
-\begin{hoangbox}
-Thay \cc{images/grade.png} bằng ảnh \cc{make grade} cuối cùng sau khi merge Task 4 và 5, rồi cập nhật bảng trên và con số 26/46 ở đây. Trên máy của Bảo: \cc{python3 scripts/capture\_lab3.py grade} trong xterm/Xvfb (lệnh đầy đủ ở đầu script), cắt ảnh như các ảnh hiện có.
-\end{hoangbox}
+\textbf{Thí nghiệm phản chứng} (Bảng~\ref{tab:exp}): tám bản kernel, mỗi bản đổi đúng một chỗ của Task 4, 5 trên một bản sao của mã, rồi chạy lại test.
 \end{minipage}\hfill
 \begin{minipage}[t]{0.56\linewidth}
 \vspace{0pt}
 \centering
 \includegraphics[width=\linewidth]{grade.png}
-\captionof{figure}{Toàn bộ output của \cc{make grade} sau Task 1 đến 3 (chạy với \cc{MAKEFLAGS=s} nên không in dòng lệnh build).}\label{fig:grade}
+\captionof{figure}{Toàn bộ output của \cc{make grade} sau Task 4 và 5 (chạy với \cc{MAKEFLAGS=s} nên không in dòng lệnh build).}\label{fig:grade}
 \end{minipage}
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\linewidth}{@{}c >{\raggedright\arraybackslash}p{5.0cm} >{\raggedright\arraybackslash}X@{}}
+\headrow \thd{} & \thd{Thay đổi} & \thd{Kết quả thật và kết luận} \\
+E1 & Bỏ \cc{kfree(p->usyscall)} & 60 test OK rồi \cc{lost some free pages 25902 (out of 32545)}. \\
+\rowcolor{rowalt}
+E2 & Bỏ \cc{uvmunmap(..., USYSCALL, 1, 0)} & \cc{panic: freewalk: leaf} ngay ở \cc{exec("/init")}. \\
+E3 & \cc{do\_free = 1} cho \cc{USYSCALL} & \cc{ugetpid\_test failed: mismatched PID \#1}: \cc{exec()} free trang mà page table mới vẫn map. \\
+\rowcolor{rowalt}
+E4 & Bỏ \cc{PTE\_U} & \cc{usertrap(): unexpected scause 0xd}, \cc{stval=0x3fffffd000}: load page fault. \\
+E5 & Thêm \cc{PTE\_W} & \cc{all tests succeeded}: test không bắt được, nhưng user sửa được pid; quyền quá rộng. \\
+\rowcolor{rowalt}
+E6 & Bỏ điều kiện \cc{pa \% SUPERPGSIZE == 0} & Mọi test đạt, vẫn 95 và 579: các vùng $\ge$ 2 MB của \cc{kvmmake} có \cc{pa = va}. \\
+E7 & Bỏ điều kiện \cc{end - a >= SUPERPGSIZE} & \cc{panic: kmappages: remap} lúc boot: trang UART thành megapage phủ cả VIRTIO0. \\
+\rowcolor{rowalt}
+E8 & \cc{kvmmap()} gọi lại \cc{mappages()} & \cc{kpgstat}: 0 superpage, 49\,219 PTE mức 0; \cc{ksuper\_test failed}. \\
+\bottomrule
+\end{tabularx}
+\caption{Thí nghiệm phản chứng. Mỗi dòng là một bản kernel riêng, chỉ khác bản cuối ở đúng một chỗ.}\label{tab:exp}
+\end{table}
 
 % =================================================================== 9
 \Needspace{14\baselineskip} % giữ tiêu đề cùng trang với bảng khó khăn
@@ -471,7 +549,9 @@ Buffer kết quả của test chỉ có 4 byte & Ghi đúng \cc{(npages+7)/8} by
 Con trỏ \cc{malloc} không căn trang; \cc{walk()} panic khi \cc{va >= MAXVA} & Làm tròn \cc{base} xuống đầu trang; kiểm tra cả khoảng trang dưới \cc{MAXVA} trước khi gọi \cc{walk()}. \\
 \rowcolor{rowalt}
 Test gốc vẫn đạt khi xóa \cc{PTE\_A} trước \cc{copyout} & Viết \cc{pgaudit}, xác nhận bằng hai phiên bản kernel sai (mục~\ref{sec:task3}). \\
-\hoang{khó khăn ở Task 4, 5} & \hoang{} \\
+Build lỗi trên máy thứ hai & \cc{-ffile-prefix-map} vỡ vì đường dẫn có dấu cách; build trên bản sao trong WSL. \\
+\rowcolor{rowalt}
+Không thấy được superpage & \cc{vmprint\_test} chỉ in user page table; thêm \cc{-DKVMPRINT} và \cc{kpgstat}. \\
 \bottomrule
 \end{tabularx}
 \caption{Các khó khăn gặp phải.}
@@ -482,7 +562,7 @@ Test gốc vẫn đạt khi xóa \cc{PTE\_A} trước \cc{copyout} & Viết \cc{
   \item Mỗi lời gọi \cc{pgaccess} quét tối đa 4096 trang (16 MB); chương trình cần quét nhiều hơn phải gọi nhiều lần.
   \item Mỗi trang được \cc{walk()} hai lần nếu có bit \cc{A} (lượt 1 và lượt 3). Lưu con trỏ PTE để tránh việc này cần 32 KB cho 4096 trang, không đặt được trên kernel stack.
   \item Trang \cc{sbrklazy} chưa được chạm tới làm \cc{pgaccess} trả $-1$ (mục~\ref{sec:task3}).
-  \item \hoang{hạn chế của Task 4, 5}
+  \item \cc{USYSCALL} chỉ chứa \cc{pid}. 2 MB đầu của RAM vẫn dùng trang 4 KB (text và data khác quyền).
 \end{itemize}
 
 \subsection{Tự đánh giá theo rubric}
@@ -496,15 +576,15 @@ T2a. Mã \cc{vmprint} & 1.0 & Xuất sắc & Đạt \cc{vmprint\_test}; bỏ PTE
 T2b. Q2 & 0.5 & Xuất sắc & Sáu lá, quyền cho phép và không cho phép, liên hệ với Task 1 (Bảng~\ref{tab:q2}). \\
 \rowcolor{rowalt}
 T3. \cc{pgaccess} & 2.0 & Xuất sắc & Đạt \cc{pgaccess}; $-1$ với trang chưa map và buffer sai; \cc{PTE\_A} đúng bit 6, xóa sau khi báo; dùng \cc{copyout}; giới hạn 4096 trang; 23/23 ca của \cc{pgaudit}. \\
-T4a. Trang \cc{USYSCALL} & 1.25 & \hoang{} & \hoang{} \\
+T4a. Trang \cc{USYSCALL} & 1.25 & Xuất sắc & Đạt \cc{ugetpid}; \cc{R|U}; đủ vòng đời; không mất trang; E1--E5. \\
 \rowcolor{rowalt}
-T4b. Q3 & 0.25 & \hoang{} & \hoang{} \\
-T5a. Superpage & 2.0 & \hoang{} & \hoang{} \\
+T4b. Q3 & 0.25 & Xuất sắc & \cc{sbrk(0)}, \cc{uptime()} và cách kernel cập nhật trang. \\
+T5a. Superpage & 2.0 & Xuất sắc & Đạt \cc{superpg}; đường map riêng cho kernel; \cc{vmprint} đánh dấu; E6--E8. \\
 \rowcolor{rowalt}
-T5b. Q4 & 0.5 & \hoang{} & \hoang{} \\
-Mã, git, \cc{time.txt} & 0.5 & \hoang{} & Mã theo phong cách xv6, có chú thích ở phần chính; \cc{time.txt} = 10 (2 giờ cho mỗi task). \hoang{lịch sử commit} \\
+T5b. Q4 & 0.5 & Xuất sắc & 95 superpage, khớp \cc{vmprint}, \cc{ksupernpte}; tiết kiệm 95 trang (Bảng~\ref{tab:kmap}). \\
+Mã, git, \cc{time.txt} & 0.5 & Xuất sắc & Phong cách xv6, có chú thích; mỗi phần một commit; \cc{time.txt} = 10. \\
 \rowcolor{rowalt}
-Báo cáo & 1.0 & \hoang{} & \hoang{số trang sau khi điền, tối đa 10} \\
+Báo cáo & 1.0 & Xuất sắc & Đủ các mục của đề, ảnh \cc{make grade} và output, không quá 10 trang. \\
 \bottomrule
 \end{tabularx}
 \caption{Nhóm tự đánh giá theo rubric của đề. Đây không phải điểm đã được giảng viên xác nhận.}
@@ -518,7 +598,7 @@ Báo cáo & 1.0 & \hoang{} & \hoang{số trang sau khi điền, tối đa 10} \\
   \item\label{ref:book} R. Cox, M. F. Kaashoek, R. Morris, \emph{xv6: a simple, Unix-like teaching operating system (RISC-V)}, chương 3 (Hình 3.2 và 3.4). \url{https://mit-pdos.github.io/xv6-riscv-book/}
   \item\label{ref:priv} \emph{The RISC-V Instruction Set Manual, Volume II: Privileged Architecture}, phần Sv39: định dạng PTE, bit \cc{A}/\cc{D}, megapage. \url{https://github.com/riscv/riscv-isa-manual}
   \item\label{ref:src} Mã nguồn xv6-labs-2026, nhánh \cc{pgtbl}: \cc{kernel/\{vm,exec,proc,kalloc,stats,sysproc\}.c}, \cc{kernel/trampoline.S}, \cc{kernel/memlayout.h}, \cc{kernel/riscv.h}, \cc{user/\{pgtbltest,umalloc\}.c}, \cc{user/user.ld}.
-  \item Công cụ AI. Claude Code (Anthropic) được dùng cho Task 1 đến 3: đọc đề và mã nguồn xv6, viết mã \cc{vmprint}, \cc{pgaccess} và chương trình \cc{pgaudit}, chạy thử và chụp ảnh minh chứng, soạn câu trả lời Q1, Q2 và báo cáo. \hoang{công cụ AI dùng cho Task 4, 5 và mục đích}. Nhóm chịu trách nhiệm về toàn bộ nội dung bài nộp.
+  \item Công cụ AI. Claude Code (Anthropic) được dùng cho Task 1 đến 3: đọc đề và mã nguồn xv6, viết mã \cc{vmprint}, \cc{pgaccess} và chương trình \cc{pgaudit}, chạy thử và chụp ảnh minh chứng, soạn câu trả lời Q1, Q2 và báo cáo. Với Task 4, 5: viết mã, chạy \cc{make grade} và E1--E8, render ảnh từ log, soạn Q3, Q4 và mục 6, 7. Nhóm chịu trách nhiệm về toàn bộ nội dung bài nộp.
 \end{enumerate}
 
 \end{document}
