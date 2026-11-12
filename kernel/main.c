@@ -19,6 +19,14 @@ main()
     kinit();            // physical page allocator
     kvminit();          // create kernel page table
     kvminithart();      // turn on paging
+#if defined(LAB_PGTBL) && defined(KVMPRINT)
+    // lab pgtbl, debugging only: show the kernel page table and its
+    // superpages. Build with: make clean; make qemu EXTRAFLAG=-DKVMPRINT
+    {
+      extern pagetable_t kernel_pagetable;
+      vmprint(kernel_pagetable);
+    }
+#endif
     procinit();         // process table
     trapinit();         // trap vectors
     trapinithart();     // install kernel trap vector

@@ -157,6 +157,8 @@ vmprint_level(pagetable_t pagetable, int level, uint64 va)
 {
   // one " .." per depth in the tree: root entries are at depth 1.
   static char *indent[] = {" .. .. ..", " .. ..", " .."};
+  // a leaf above level 0 maps a whole 2 MB or 1 GB region (task 5).
+  static char *super[] = {"", " superpage 2MB", " superpage 1GB"};
 
   // there are 2^9 = 512 PTEs in a page-table page.
   for (int i = 0; i < 512; i++) {
@@ -179,8 +181,8 @@ vmprint_level(pagetable_t pagetable, int level, uint64 va)
       if (pte & PTE_U)
         *f++ = 'U';
       *f = 0;
-      printk("%s%p: pte %p pa %p %s\n", indent[level], (void *)a, (void *)pte,
-             (void *)PTE2PA(pte), perm);
+      printk("%s%p: pte %p pa %p %s%s\n", indent[level], (void *)a,
+             (void *)pte, (void *)PTE2PA(pte), perm, super[level]);
     } else {
       // R=W=X=0: pte points to the next-level page-table page.
       printk("%s%p: pte %p pa %p\n", indent[level], (void *)a, (void *)pte,
@@ -201,13 +203,90 @@ vmprint(pagetable_t pagetable)
 #endif
 
 
+#ifdef LAB_PGTBL
+// Return the address of the level-1 PTE for va in the kernel page
+// table, creating the level-1 page-table page if needed. Unlike
+// walk(), it never creates a level-0 page, which a 2 MB superpage
+// does not need. Returns 0 if kalloc() fails.
+static pte_t *
+kwalk1(pagetable_t kpgtbl, uint64 va)
+{
+  pte_t *pte = &kpgtbl[PX(2, va)];
+  pagetable_t l1;
+
+  if (*pte & PTE_V) {
+    if (PTE_LEAF(*pte))
+      panic("kwalk1: 1 GB leaf");
+    l1 = (pagetable_t)PTE2PA(*pte);
+  } else {
+    if ((l1 = (pagetable_t)kalloc()) == 0)
+      return 0;
+    memset(l1, 0, PGSIZE);
+    *pte = PA2PTE(l1) | PTE_V;
+  }
+  return &l1[PX(1, va)];
+}
+
+// A copy of mappages() used only by kvmmap(), i.e. only for the
+// kernel page table. Where va and pa are both 2 MB-aligned and at
+// least 2 MB of the range is left, it maps the next 2 MB with a
+// single level-1 leaf PTE (a megapage) instead of a level-0 page
+// with 512 PTEs. The unaligned head and tail of a range use 4 KB
+// pages. User page tables keep using mappages().
+static int
+kmappages(pagetable_t kpgtbl, uint64 va, uint64 size, uint64 pa, int perm)
+{
+  uint64 a, end;
+  pte_t *pte;
+
+  if ((va % PGSIZE) != 0)
+    panic("kmappages: va not aligned");
+
+  if ((size % PGSIZE) != 0)
+    panic("kmappages: size not aligned");
+
+  if (size == 0)
+    panic("kmappages: size");
+
+  a = va;
+  end = va + size;
+  while (a < end) {
+    if ((a % SUPERPGSIZE) == 0 && (pa % SUPERPGSIZE) == 0 &&
+        end - a >= SUPERPGSIZE) {
+      // the PPN of a megapage must be 2 MB-aligned, so pa is
+      // checked too (the kernel's direct map has pa == va).
+      if ((pte = kwalk1(kpgtbl, a)) == 0)
+        return -1;
+      if (*pte & PTE_V) // a leaf, or a level-0 page in use
+        panic("kmappages: remap");
+      *pte = PA2PTE(pa) | perm | PTE_V;
+      a += SUPERPGSIZE;
+      pa += SUPERPGSIZE;
+    } else {
+      if ((pte = walk(kpgtbl, a, 1)) == 0)
+        return -1;
+      if (*pte & PTE_V) // also true inside an existing megapage
+        panic("kmappages: remap");
+      *pte = PA2PTE(pa) | perm | PTE_V;
+      a += PGSIZE;
+      pa += PGSIZE;
+    }
+  }
+  return 0;
+}
+#endif
+
 // add a mapping to the kernel page table.
 // only used when booting.
 // does not flush TLB or enable paging.
 void
 kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, int perm)
 {
+#ifdef LAB_PGTBL
+  if (kmappages(kpgtbl, va, sz, pa, perm) != 0)
+#else
   if (mappages(kpgtbl, va, sz, pa, perm) != 0)
+#endif
     panic("kvmmap");
 }
 
